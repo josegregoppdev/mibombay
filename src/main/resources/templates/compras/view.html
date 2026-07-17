@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title">Compra #<span th:text="${compra.id}">1</span></h1>
+            <p class="sd-page-desc">Detalle de la compra</p>
+            <div class="sd-title-accent"></div>
+        </div>
+        <div class="sd-page-actions">
+            <a th:href="@{/compras/{id}/editar(id=${compra.id})}" class="sd-btn">
+                <i class="bi bi-pencil"></i> Editar
+            </a>
+            <a th:href="@{/compras}" class="sd-btn sd-btn--outline">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="sd-info-grid sd-fade sd-fade--2">
+        <div class="sd-info-card">
+            <div class="sd-info-label">Proveedor</div>
+            <div class="sd-info-value" th:text="${compra.nombreProveedor}">Proveedor</div>
+        </div>
+        <div class="sd-info-card">
+            <div class="sd-info-label">Factura</div>
+            <div class="sd-info-value">
+                <span th:if="${compra.numeroFactura != null}" th:text="${compra.numeroFactura}">FAC-001</span>
+                <span th:unless="${compra.numeroFactura != null}" class="sd-user-noinfo">&mdash;</span>
+            </div>
+        </div>
+        <div class="sd-info-card">
+            <div class="sd-info-label">Fecha</div>
+            <div class="sd-info-value" th:text="${#temporals.format(compra.fechaCompra, 'dd/MM/yyyy HH:mm')}">01/01/2025</div>
+        </div>
+        <div class="sd-info-card">
+            <div class="sd-info-label">Tipo</div>
+            <div class="sd-info-value">
+                <span class="sa-badge"
+                      th:classappend="${compra.tipo == 'INGREDIENTES'} ? 'sa-badge--info' : (${compra.tipo == 'PRODUCTOS'} ? 'sa-badge--profit-mid' : 'sa-badge--profit-high')"
+                      th:text="${compra.tipo}">MIXTO</span>
+            </div>
+        </div>
+        <div class="sd-info-card">
+            <div class="sd-info-label">Total</div>
+            <div class="sd-info-value sd-info-value--accent" th:text="'$' + ${#numbers.formatDecimal(compra.total, 1, 2)}">$0.00</div>
+        </div>
+        <div class="sd-info-card" th:if="${compra.observaciones != null and !compra.observaciones.isEmpty()}">
+            <div class="sd-info-label">Observaciones</div>
+            <div class="sd-info-value" th:text="${compra.observaciones}">Observaciones</div>
+        </div>
+    </div>
+
+    <div class="sd-list-card sd-fade sd-fade--3">
+        <div class="sd-list-card-glow"></div>
+        <div class="sd-list-card-header">
+            <div class="sd-list-card-title">
+                <i class="bi bi-list-ul"></i>
+                <span>Detalle de la compra</span>
+            </div>
+        </div>
+
+        <div class="sa-table-wrapper">
+            <table class="sa-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Tipo</th>
+                        <th class="sa-cell-right">Cantidad</th>
+                        <th class="sa-cell-right">Precio unitario</th>
+                        <th class="sa-cell-right">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="det : ${compra.detalles}" class="sd-table-row">
+                        <td th:text="${det.itemNombre}">Item</td>
+                        <td>
+                            <span class="sa-badge sa-badge--sm"
+                                  th:classappend="${det.itemTipo.name() == 'INGREDIENTE'} ? 'sa-badge--info' : 'sa-badge--profit-mid'"
+                                  th:text="${det.itemTipo.name()}">INGREDIENTE</span>
+                        </td>
+                        <td class="sa-cell-right" th:text="${#numbers.formatDecimal(det.cantidad, 1, 3)}">0.000</td>
+                        <td class="sa-cell-right" th:text="'$' + ${#numbers.formatDecimal(det.precioUnitario, 1, 2)}">$0.00</td>
+                        <td class="sa-cell-right" th:text="'$' + ${#numbers.formatDecimal(det.subtotal, 1, 2)}">$0.00</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr class="sd-table-row sd-table-row--total">
+                        <td colspan="4" class="sa-cell-right"><strong>Total:</strong></td>
+                        <td class="sa-cell-right"><strong th:text="'$' + ${#numbers.formatDecimal(compra.total, 1, 2)}">$0.00</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div class="sd-form-actions sd-fade sd-fade--4">
+        <a th:href="@{/compras/{id}/editar(id=${compra.id})}" class="sd-btn">
+            <i class="bi bi-pencil"></i> Editar compra
+        </a>
+        <form th:action="@{/compras/{id}/anular(id=${compra.id})}" method="post"
+              style="display:inline"
+              onsubmit="return confirm('&iquest;Anular esta compra? Se revertir&aacute; el stock.')">
+            <button type="submit" class="sd-btn sd-btn--danger">
+                <i class="bi bi-x-circle"></i> Anular compra
+            </button>
+        </form>
+        <a th:href="@{/compras}" class="sd-btn sd-btn--outline">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var els = document.querySelectorAll('.sd-fade');
+            els.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 100 * i);
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

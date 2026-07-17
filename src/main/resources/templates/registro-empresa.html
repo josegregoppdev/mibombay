@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Crear Empresa - Mi Bombay</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:opsz,wght@14..32,300;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="registro-body">
+    <div class="bg-grain"></div>
+    <div class="bg-glow"></div>
+
+    <div class="registro-wrapper">
+        <div class="registro-header">
+            <a href="/" class="registro-logo">Mi Bombay</a>
+            <p class="registro-sub">Registra tu restaurante</p>
+        </div>
+
+        <form th:action="@{/registro-empresa}" method="post" th:object="${empresa}" class="registro-form">
+            <div th:if="${#fields.hasAnyErrors()}" class="registro-alert">
+                <span th:each="err : ${#fields.allErrors()}" th:text="${err}"></span>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nombre">Nombre del restaurante *</label>
+                    <input type="text" id="nombre" th:field="*{nombre}" class="form-control" placeholder="Ej: Mi Restaurante" required>
+                    <div th:if="${#fields.hasErrors('nombre')}" class="field-error" th:errors="*{nombre}"></div>
+                </div>
+                <div class="form-group">
+                    <label for="subdominio">Subdominio *</label>
+                    <div class="subdominio-input">
+                        <input type="text" id="subdominio" th:field="*{subdominio}" class="form-control" placeholder="mirest" required>
+                        <span class="subdominio-sufijo">.mibombay.com</span>
+                    </div>
+                    <div th:if="${#fields.hasErrors('subdominio')}" class="field-error" th:errors="*{subdominio}"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="nombreEncargado">Nombre del encargado</label>
+                <input type="text" id="nombreEncargado" th:field="*{nombreEncargado}" class="form-control" placeholder="Ej: Juan Pérez">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" th:field="*{email}" class="form-control" placeholder="correo@ejemplo.com">
+                </div>
+                <div class="form-group">
+                    <label for="telefono">Teléfono</label>
+                    <input type="text" id="telefono" th:field="*{telefono}" class="form-control" placeholder="0999999999">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="direccion">Dirección</label>
+                <input type="text" id="direccion" th:field="*{direccion}" class="form-control" placeholder="Av. Principal y calle...">
+            </div>
+
+            <div class="form-group">
+                <label for="descripcion">Descripción</label>
+                <textarea id="descripcion" th:field="*{descripcion}" class="form-control" rows="3" placeholder="Breve descripción del restaurante..."></textarea>
+            </div>
+
+            <div class="registro-info">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <span>Se crear&aacute;n un usuario <strong>ADMIN</strong> y un <strong>CAJERO</strong> autom&aacute;ticamente. Cambia las claves despu&eacute;s del primer ingreso.</span>
+            </div>
+
+            <button type="submit" class="registro-submit">Crear empresa</button>
+
+            <p class="registro-volver">
+                <a href="/">← Volver al inicio</a>
+            </p>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

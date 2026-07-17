@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title" th:text="${receta != null and receta.nombreReceta != null} ? 'Editar Receta' : 'Nueva Receta'"></h1>
+            <p class="sd-page-desc" th:text="'Producto: ' + ${producto.nombre}"></p>
+            <div class="sd-title-accent"></div>
+        </div>
+    </div>
+
+    <div class="sd-form-card sd-fade sd-fade--2">
+        <div class="sd-form-card-glow"></div>
+        <div class="sd-form-card-header">
+            <div class="sd-form-card-icon">
+                <i class="bi bi-book"></i>
+            </div>
+            <div>
+                <h3>Ingredientes de la receta</h3>
+                <p>Agrega los ingredientes y sus cantidades</p>
+            </div>
+        </div>
+
+        <form th:action="@{/productos/{id}/receta/guardar(id=${producto.id})}" method="post">
+
+            <div class="sd-form-grid">
+                <div class="sd-form-field sd-form-field--full">
+                    <label for="nombreReceta" class="sd-form-label">
+                        <i class="bi bi-tag"></i> Nombre de la receta
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="text" id="nombreReceta" name="nombreReceta" class="sd-form-input"
+                               placeholder="Ej: Receta cl&aacute;sica"
+                               th:value="${receta.nombreReceta}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="sd-form-divider"></div>
+
+            <div class="sd-section-title">
+                <i class="bi bi-list-check"></i>
+                <span>Ingredientes</span>
+            </div>
+
+            <div class="sd-receta-fields" id="detallesContainer">
+                <div class="sd-receta-row sd-receta-row--header">
+                    <span class="sd-receta-col sd-receta-col--ing">Ingrediente</span>
+                    <span class="sd-receta-col sd-receta-col--cant">Cantidad</span>
+                    <span class="sd-receta-col sd-receta-col--action"></span>
+                </div>
+
+                <div class="sd-receta-row" th:each="det, iter : ${receta.detalles}">
+                    <div class="sd-receta-col sd-receta-col--ing">
+                        <select name="ingredienteIds" class="sd-form-input sd-receta-select" required>
+                            <option value="">— Seleccione —</option>
+                            <option th:each="ing : ${ingredientes}"
+                                    th:value="${ing.id}"
+                                    th:text="${ing.nombre + ' (' + ing.stockActual + ' ' + #strings.toLowerCase(ing.unidadMedida) + ')'}"
+                                    th:selected="${det.ingredienteId == ing.id}"></option>
+                        </select>
+                        <i class="sd-select-chevron bi bi-chevron-down"></i>
+                    </div>
+                    <div class="sd-receta-col sd-receta-col--cant">
+                        <input type="number" name="cantidades" class="sd-form-input sd-receta-input"
+                               step="0.001" min="0.001" required placeholder="0"
+                               th:value="${det.cantidad}">
+                    </div>
+                    <div class="sd-receta-col sd-receta-col--action">
+                        <button type="button" class="sa-btn-icon sa-btn-icon--delete sd-receta-remove" title="Quitar">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sd-receta-add">
+                <button type="button" class="sd-btn sd-btn--sm" id="addDetalleBtn">
+                    <i class="bi bi-plus-circle"></i> Agregar ingrediente
+                </button>
+            </div>
+
+            <select id="ingredienteSelectTemplate" style="display:none">
+                <option value="">— Seleccione —</option>
+                <option th:each="ing : ${ingredientes}"
+                        th:value="${ing.id}"
+                        th:text="${ing.nombre + ' (' + ing.stockActual + ' ' + #strings.toLowerCase(ing.unidadMedida) + ')'}"></option>
+            </select>
+
+            <div class="sd-form-divider"></div>
+
+            <div class="sd-form-actions sd-fade sd-fade--9">
+                <button type="submit" class="sd-btn">
+                    <i class="bi bi-check-lg"></i> Guardar receta
+                </button>
+                <a th:href="@{/productos/{id}/receta(id=${producto.id})}" class="sd-btn sd-btn--outline">
+                    <i class="bi bi-x-lg"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var els = document.querySelectorAll('.sd-fade');
+            els.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 80 * i);
+            });
+
+            var container = document.getElementById('detallesContainer');
+            var addBtn = document.getElementById('addDetalleBtn');
+            var templateSelect = document.getElementById('ingredienteSelectTemplate');
+
+            addBtn.addEventListener('click', function() {
+                var row = document.createElement('div');
+                row.className = 'sd-receta-row';
+                row.innerHTML = [
+                    '<div class="sd-receta-col sd-receta-col--ing">',
+                    templateSelect.outerHTML.replace(/id="ingredienteSelectTemplate"/g, '').replace(/style="display:\s*none"/g, ''),
+                    '<i class="sd-select-chevron bi bi-chevron-down"></i>',
+                    '</div>',
+                    '<div class="sd-receta-col sd-receta-col--cant">',
+                    '<input type="number" name="cantidades" class="sd-form-input sd-receta-input" step="0.001" min="0.001" required placeholder="0">',
+                    '</div>',
+                    '<div class="sd-receta-col sd-receta-col--action">',
+                    '<button type="button" class="sa-btn-icon sa-btn-icon--delete sd-receta-remove" title="Quitar"><i class="bi bi-x-lg"></i></button>',
+                    '</div>'
+                ].join('');
+                row.querySelector('select').name = 'ingredienteIds';
+                row.querySelector('select').classList.add('sd-receta-select');
+                container.appendChild(row);
+            });
+
+            container.addEventListener('click', function(e) {
+                if (e.target.closest('.sd-receta-remove')) {
+                    var allRows = container.querySelectorAll('.sd-receta-row:not(.sd-receta-row--header)');
+                    if (allRows.length > 0) {
+                        var row = e.target.closest('.sd-receta-row');
+                        if (row) row.remove();
+                    }
+                }
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

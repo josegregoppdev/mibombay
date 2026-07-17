@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title" th:text="${usuarioId != null} ? 'Editar Usuario' : 'Nuevo Usuario'"></h1>
+            <p class="sd-page-desc" th:text="${usuarioId != null} ? 'Modifica los datos del usuario' : 'Registra un nuevo usuario en el sistema'"></p>
+            <div class="sd-title-accent"></div>
+        </div>
+    </div>
+
+    <div class="sd-form-card sd-fade sd-fade--2">
+        <div class="sd-form-card-glow"></div>
+        <div class="sd-form-card-header">
+            <div class="sd-form-card-icon">
+                <i class="bi bi-person-badge"></i>
+            </div>
+            <div>
+                <h3 th:text="${usuarioId != null} ? 'Informaci&oacute;n del usuario' : 'Datos del nuevo usuario'"></h3>
+                <p>Los campos marcados con * son obligatorios</p>
+            </div>
+        </div>
+
+        <form th:action="${usuarioId != null} ? @{/usuarios/{id}/actualizar(id=${usuarioId})} : @{/usuarios/guardar}"
+              method="post" th:object="${usuario}">
+
+            <div class="sd-form-grid">
+                <div class="sd-form-field sd-fade sd-fade--3">
+                    <label for="nombre" class="sd-form-label">
+                        <i class="bi bi-person"></i> Nombre *
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="text" id="nombre" th:field="*{nombre}" class="sd-form-input" required placeholder="Ej: Carlos">
+                    </div>
+                    <div th:if="${#fields.hasErrors('nombre')}" class="sd-form-error" th:errors="*{nombre}"></div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--4">
+                    <label for="apellido" class="sd-form-label">
+                        <i class="bi bi-person"></i> Apellido
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="text" id="apellido" th:field="*{apellido}" class="sd-form-input" placeholder="Ej: Mendoza">
+                    </div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--5">
+                    <label for="email" class="sd-form-label">
+                        <i class="bi bi-envelope"></i> Email
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="email" id="email" th:field="*{email}" class="sd-form-input" placeholder="correo@ejemplo.com">
+                    </div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--6">
+                    <label for="telefono" class="sd-form-label">
+                        <i class="bi bi-telephone"></i> Tel&eacute;fono
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="text" id="telefono" th:field="*{telefono}" class="sd-form-input" placeholder="+593 99 999 9999">
+                    </div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--7">
+                    <label for="username" class="sd-form-label">
+                        <i class="bi bi-at"></i> Username *
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="text" id="username" th:field="*{username}" class="sd-form-input" required placeholder="Ej: cmendoza">
+                    </div>
+                    <div th:if="${#fields.hasErrors('username')}" class="sd-form-error" th:errors="*{username}"></div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--8">
+                    <label for="password" class="sd-form-label">
+                        <i class="bi bi-lock"></i>
+                        <span th:text="${usuarioId != null} ? 'Contrase&ntilde;a (dejar vac&iacute;o para mantener)' : 'Contrase&ntilde;a *'"></span>
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="password" id="password" th:field="*{password}" class="sd-form-input"
+                               th:required="${usuarioId == null}" placeholder="••••••••">
+                    </div>
+                    <div th:if="${#fields.hasErrors('password')}" class="sd-form-error" th:errors="*{password}"></div>
+                </div>
+
+                <div class="sd-form-field sd-form-field--full sd-fade sd-fade--9">
+                    <label for="rol" class="sd-form-label">
+                        <i class="bi bi-shield"></i> Rol *
+                    </label>
+                    <div class="sd-input-wrap">
+                        <select id="rol" th:field="*{rol}" class="sd-form-input" required>
+                            <option value="">— Seleccione un rol —</option>
+                            <option th:each="r : ${roles}" th:value="${r}" th:text="${r}"></option>
+                        </select>
+                        <i class="sd-select-chevron bi bi-chevron-down"></i>
+                    </div>
+                    <div th:if="${#fields.hasErrors('rol')}" class="sd-form-error" th:errors="*{rol}"></div>
+                </div>
+            </div>
+
+            <div class="sd-form-divider"></div>
+
+            <div class="sd-form-actions sd-fade sd-fade--10">
+                <button type="submit" class="sd-btn">
+                    <i class="bi bi-check-lg"></i>
+                    <span th:text="${usuarioId != null} ? 'Actualizar usuario' : 'Crear usuario'"></span>
+                </button>
+                <a th:href="@{/usuarios}" class="sd-btn sd-btn--outline">
+                    <i class="bi bi-x-lg"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var els = document.querySelectorAll('.sd-fade');
+            els.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 80 * i);
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

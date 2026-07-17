@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Superadmin — Mi Bombay</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:opsz,wght@14..32,300;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="sa-login-page">
+
+<div class="sa-login-bg-grain"></div>
+<div class="sa-login-glow"></div>
+
+<main class="sa-login-container">
+    <div class="sa-login-card">
+        <div class="sa-login-badge">DEV</div>
+
+        <div class="sa-login-brand">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            <span>Panel Superadmin</span>
+        </div>
+
+        <p class="sa-login-desc">Acceso restringido — administraci&oacute;n global del sistema</p>
+
+        <div class="sa-login-divider"></div>
+
+        <form th:action="@{/superadmin/login}" method="post" class="sa-login-form">
+
+            <div th:if="${param.error}" class="sa-login-alert">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Credenciales inv&aacute;lidas
+            </div>
+
+            <div class="sa-login-field">
+                <label for="sa-username">Usuario Superadmin</label>
+                <div class="sa-login-input-wrap">
+                    <svg class="sa-login-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <input type="text" name="username" id="sa-username" placeholder="superadmin" required>
+                </div>
+            </div>
+
+            <div class="sa-login-field">
+                <label for="sa-password">Contrase&ntilde;a</label>
+                <div class="sa-login-input-wrap">
+                    <svg class="sa-login-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <input type="password" name="password" id="sa-password" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <button type="submit" class="sa-login-btn">Ingresar</button>
+        </form>
+
+        <a th:href="@{/}" class="sa-login-back">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Volver al inicio
+        </a>
+        <span class="sa-login-back-sep"></span>
+        <a th:href="@{/login}" class="sa-login-back">
+            Acceso usuarios
+        </a>
+    </div>
+</main>
+
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

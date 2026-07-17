@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title" th:text="${compra.id != null} ? 'Editar Compra' : 'Nueva Compra'">Nueva Compra</h1>
+            <p class="sd-page-desc" th:text="${compra.id != null} ? 'Modifica los datos de la compra' : 'Registra la compra de ingredientes o productos'">Registra la compra</p>
+            <div class="sd-title-accent"></div>
+        </div>
+    </div>
+
+    <div class="sd-form-card sd-fade sd-fade--2">
+        <div class="sd-form-card-glow"></div>
+        <div class="sd-form-card-header">
+            <div class="sd-form-card-icon">
+                <i class="bi bi-cart"></i>
+            </div>
+            <div>
+                <h3 th:text="${compra.id != null} ? 'Editar compra' : 'Registro de compra'">Registro de compra</h3>
+                <p th:text="${compra.id != null} ? 'Modifica los datos y las l&iacute;neas de detalle' : 'Completa los datos de la compra y agrega las l&iacute;neas de detalle'">Completa los datos</p>
+            </div>
+        </div>
+
+        <form th:action="${compra.id != null} ? @{/compras/{id}/actualizar(id=${compra.id})} : @{/compras/guardar}" method="post" th:object="${compra}">
+            <input type="hidden" th:field="*{fechaCompra}" />
+
+            <div class="sd-form-grid">
+                <div class="sd-form-field sd-fade sd-fade--3">
+                    <label for="proveedorId" class="sd-form-label">
+                        <i class="bi bi-truck"></i> Proveedor *
+                    </label>
+                    <div class="sd-input-wrap">
+                        <select id="proveedorId" th:field="*{proveedorId}" class="sd-form-input" required>
+                            <option value="">-- Seleccionar proveedor --</option>
+                            <option th:each="prov : ${proveedores}"
+                                    th:value="${prov.id}"
+                                    th:text="${prov.razonSocial}">Proveedor</option>
+                        </select>
+                        <i class="bi bi-chevron-down sd-select-chevron"></i>
+                    </div>
+                    <div th:if="${#fields.hasErrors('proveedorId')}" class="sd-form-error" th:errors="*{proveedorId}"></div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--4">
+                    <label for="numeroFactura" class="sd-form-label">
+                        <i class="bi bi-receipt"></i> N&uacute;mero de factura
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="text" id="numeroFactura" th:field="*{numeroFactura}" class="sd-form-input" placeholder="Ej: FAC-001">
+                    </div>
+                </div>
+
+                <div class="sd-form-field sd-form-field--full sd-fade sd-fade--5">
+                    <label for="observaciones" class="sd-form-label">
+                        <i class="bi bi-chat-text"></i> Observaciones
+                    </label>
+                    <div class="sd-input-wrap">
+                        <textarea id="observaciones" th:field="*{observaciones}" class="sd-form-input sd-form-textarea" rows="2" placeholder="Notas adicionales de la compra..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sd-form-divider"></div>
+
+            <div class="sd-section-title sd-fade sd-fade--5">
+                <i class="bi bi-list-ul"></i> Detalle de la compra
+            </div>
+
+            <div class="sd-iva-info sd-fade sd-fade--5">
+                <i class="bi bi-info-circle"></i>
+                <span>Todos los precios deben ingresarse con <strong>IVA incluido (19%)</strong>.
+                El sistema calcular&aacute; autom&aacute;ticamente el desglose de Base e IVA por cada l&iacute;nea.</span>
+            </div>
+
+            <div class="sd-detalle-header sd-fade sd-fade--5">
+                <span><i class="bi bi-box"></i> Item</span>
+                <span><i class="bi bi-hash"></i> Cantidad</span>
+                <span><i class="bi bi-currency-dollar"></i> Precio (con IVA)</span>
+                <span><i class="bi bi-calculator"></i> Base</span>
+                <span><i class="bi bi-percent"></i> IVA 19%</span>
+                <span><i class="bi bi-calculator"></i> Subtotal</span>
+                <span></span>
+            </div>
+
+            <div id="detalles-container">
+                <div id="empty-detalles" class="sd-empty-detalles">
+                    <div class="sd-empty-detalles-icon">
+                        <i class="bi bi-plus-lg"></i>
+                    </div>
+                    <h4>A&uacute;n no hay detalles</h4>
+                    <p>Presiona "Agregar detalle" para a&ntilde;adir ingredientes o productos a esta compra</p>
+                </div>
+            </div>
+
+            <div id="template-row" style="display:none">
+                <div class="sd-detalle-row">
+                    <div class="sd-detalle-cell--item sd-detalle-select">
+                        <input type="hidden" class="item-tipo-input" value="" />
+                        <select class="item-select">
+                            <option value="">-- Seleccionar item --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <input type="number" step="0.001" min="0.001"
+                               class="sd-detalle-input cantidad-input"
+                               placeholder="0.000">
+                    </div>
+                    <div>
+                        <input type="number" step="0.01" min="0.01"
+                               class="sd-detalle-input precio-input"
+                               placeholder="0.00">
+                    </div>
+                    <div>
+                        <div class="sd-detalle-base">$0.00</div>
+                    </div>
+                    <div>
+                        <div class="sd-detalle-iva">$0.00</div>
+                    </div>
+                    <div>
+                        <div class="sd-detalle-subtotal">$0.00</div>
+                    </div>
+                    <div>
+                        <button type="button" class="sd-detalle-delete eliminar-detalle" title="Eliminar detalle">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="total-bar" class="sd-total-bar sd-fade sd-fade--6" style="display:none">
+                <span class="sd-total-bar-label">Items</span>
+                <span class="sd-total-bar-count" id="total-count">0</span>
+                <span class="sd-total-bar-sep sd-text-muted">|</span>
+                <span class="sd-total-bar-label">Base</span>
+                <span class="sd-total-bar-base" id="total-base">$0.00</span>
+                <span class="sd-total-bar-sep sd-text-muted">|</span>
+                <span class="sd-total-bar-iva-group">
+                    <span class="sd-total-bar-iva-label">IVA 19%</span>
+                    <span class="sd-total-bar-iva-value" id="total-iva">$0.00</span>
+                </span>
+                <span class="sd-total-bar-sep sd-text-muted">|</span>
+                <span class="sd-total-bar-label">Total (con IVA)</span>
+                <span class="sd-total-bar-value" id="total-value">$0.00</span>
+            </div>
+
+            <div class="sd-form-divider"></div>
+
+            <div class="sd-form-actions">
+                <button type="button" id="agregar-detalle" class="sd-btn sd-btn--outline">
+                    <i class="bi bi-plus-circle"></i> Agregar detalle
+                </button>
+                <button type="submit" class="sd-btn">
+                    <i class="bi bi-check-lg"></i> <span th:text="${compra.id != null} ? 'Actualizar compra' : 'Guardar compra'">Guardar compra</span>
+                </button>
+                <a th:href="${compra.id != null} ? @{/compras/{id}(id=${compra.id})} : @{/compras}" class="sd-btn sd-btn--outline">
+                    <i class="bi bi-x-lg"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        var items = [];
+        var TASA_IVA = 0.19;
+        var existingDetalles = [];
+    </script>
+    <script th:inline="javascript" th:each="ing : ${ingredientes}">
+        items.push({id: [[${ing.id}]], nombre: [[${ing.nombre} + ' (' + ${ing.unidadMedida} + ')']], tipo: 'INGREDIENTE'});
+    </script>
+    <script th:inline="javascript" th:each="prod : ${productos}">
+        items.push({id: [[${prod.id}]], nombre: [[${prod.nombre}]], tipo: 'PRODUCTO'});
+    </script>
+    <script th:inline="javascript" th:if="${compra.detalles != null}" th:each="det : ${compra.detalles}">
+        existingDetalles.push({
+            itemTipo: '[[${det.itemTipo}]]',
+            itemId: [[${det.itemId}]],
+            itemNombre: '[[${det.itemNombre}]]',
+            cantidad: [[${det.cantidad}]],
+            precioUnitario: [[${det.precioUnitario}]],
+            subtotal: [[${det.subtotal}]]
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var container = document.getElementById('detalles-container');
+            var btnAgregar = document.getElementById('agregar-detalle');
+            var emptyState = document.getElementById('empty-detalles');
+            var totalBar = document.getElementById('total-bar');
+            var totalCount = document.getElementById('total-count');
+            var totalBase = document.getElementById('total-base');
+            var totalIva = document.getElementById('total-iva');
+            var totalValue = document.getElementById('total-value');
+            var template = document.getElementById('template-row');
+            var index = 0;
+
+            function renderOpciones(selectItem) {
+                var ingredientes = items.filter(function(it) { return it.tipo === 'INGREDIENTE'; });
+                var productos = items.filter(function(it) { return it.tipo === 'PRODUCTO'; });
+                selectItem.innerHTML = '<option value="">-- Seleccionar item --</option>';
+
+                if (ingredientes.length > 0) {
+                    var ogIng = document.createElement('optgroup');
+                    ogIng.label = 'Ingredientes';
+                    ingredientes.forEach(function(item) {
+                        var opt = document.createElement('option');
+                        opt.value = item.id;
+                        opt.textContent = item.nombre;
+                        opt.setAttribute('data-tipo', 'INGREDIENTE');
+                        ogIng.appendChild(opt);
+                    });
+                    selectItem.appendChild(ogIng);
+                }
+
+                if (productos.length > 0) {
+                    var ogProd = document.createElement('optgroup');
+                    ogProd.label = 'Productos';
+                    productos.forEach(function(item) {
+                        var opt = document.createElement('option');
+                        opt.value = item.id;
+                        opt.textContent = item.nombre;
+                        opt.setAttribute('data-tipo', 'PRODUCTO');
+                        ogProd.appendChild(opt);
+                    });
+                    selectItem.appendChild(ogProd);
+                }
+            }
+
+            function calcularIva(precio) {
+                var base = precio / (1 + TASA_IVA);
+                var iva = precio - base;
+                return { base: base, iva: iva };
+            }
+
+            function actualizarTotal() {
+                var rows = container.querySelectorAll('.sd-detalle-row');
+                var totalBaseVal = 0;
+                var totalIvaVal = 0;
+                var totalConIva = 0;
+                rows.forEach(function(row) {
+                    var sub = parseFloat(row.querySelector('.sd-detalle-subtotal').textContent.replace('$', '')) || 0;
+                    var base = parseFloat(row.querySelector('.sd-detalle-base').textContent.replace('$', '')) || 0;
+                    var iva = parseFloat(row.querySelector('.sd-detalle-iva').textContent.replace('$', '')) || 0;
+                    totalBaseVal += base;
+                    totalIvaVal += iva;
+                    totalConIva += sub;
+                });
+                totalCount.textContent = rows.length;
+                totalBase.textContent = '$' + totalBaseVal.toFixed(2);
+                totalIva.textContent = '$' + totalIvaVal.toFixed(2);
+                totalValue.textContent = '$' + totalConIva.toFixed(2);
+                if (rows.length === 0) {
+                    totalBar.style.display = 'none';
+                    emptyState.classList.remove('sd-empty-detalles--hidden');
+                } else {
+                    totalBar.style.display = '';
+                    emptyState.classList.add('sd-empty-detalles--hidden');
+                }
+            }
+
+            function calcularFila(row) {
+                var cant = parseFloat(row.querySelector('.cantidad-input').value) || 0;
+                var precio = parseFloat(row.querySelector('.precio-input').value) || 0;
+                var desglose = calcularIva(precio);
+                var sub = cant * precio;
+                var baseLine = cant * desglose.base;
+                var ivaLine = cant * desglose.iva;
+                row.querySelector('.sd-detalle-base').textContent = '$' + baseLine.toFixed(2);
+                row.querySelector('.sd-detalle-iva').textContent = '$' + ivaLine.toFixed(2);
+                row.querySelector('.sd-detalle-subtotal').textContent = '$' + sub.toFixed(2);
+                actualizarTotal();
+            }
+
+            function crearFila() {
+                var clone = template.cloneNode(true);
+                clone.id = '';
+                clone.style.display = '';
+
+                var row = clone.querySelector('.sd-detalle-row');
+
+                var tipoInput = clone.querySelector('.item-tipo-input');
+                tipoInput.name = 'detalles[' + index + '].itemTipo';
+
+                var selectItem = clone.querySelector('.item-select');
+                selectItem.name = 'detalles[' + index + '].itemId';
+                selectItem.required = true;
+
+                var cantInput = clone.querySelector('.cantidad-input');
+                cantInput.name = 'detalles[' + index + '].cantidad';
+                cantInput.required = true;
+
+                var precioInput = clone.querySelector('.precio-input');
+                precioInput.name = 'detalles[' + index + '].precioUnitario';
+                precioInput.required = true;
+
+                renderOpciones(selectItem);
+
+                selectItem.addEventListener('change', function() {
+                    var selected = this.options[this.selectedIndex];
+                    if (selected && selected.value) {
+                        tipoInput.value = selected.getAttribute('data-tipo') || '';
+                    } else {
+                        tipoInput.value = '';
+                    }
+                    calcularFila(row);
+                });
+
+                cantInput.addEventListener('input', function() { calcularFila(row); });
+                precioInput.addEventListener('input', function() { calcularFila(row); });
+
+                clone.querySelector('.eliminar-detalle').addEventListener('click', function() {
+                    clone.remove();
+                    actualizarTotal();
+                });
+
+                index++;
+                return clone;
+            }
+
+            btnAgregar.addEventListener('click', function() {
+                var fila = crearFila();
+                container.appendChild(fila);
+                actualizarTotal();
+            });
+
+            function crearFilaConDatos(datos) {
+                var fila = crearFila();
+                var row = fila.querySelector('.sd-detalle-row');
+                var selectItem = fila.querySelector('.item-select');
+                var tipoInput = fila.querySelector('.item-tipo-input');
+                var cantInput = fila.querySelector('.cantidad-input');
+                var precioInput = fila.querySelector('.precio-input');
+
+                var targetTipo = String(datos.itemTipo).replace(/['"]/g, '').trim();
+                var found = false;
+                for (var i = 0; i < selectItem.options.length; i++) {
+                    var opt = selectItem.options[i];
+                    if (opt.value == datos.itemId && opt.getAttribute('data-tipo') === targetTipo) {
+                        selectItem.selectedIndex = i;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    for (var i = 0; i < selectItem.options.length; i++) {
+                        if (selectItem.options[i].value == datos.itemId) {
+                            selectItem.selectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+                var selectedOpt = selectItem.options[selectItem.selectedIndex];
+                tipoInput.value = selectedOpt && selectedOpt.value ? (selectedOpt.getAttribute('data-tipo') || '') : '';
+                cantInput.value = datos.cantidad;
+                precioInput.value = datos.precioUnitario;
+                calcularFila(row);
+                return fila;
+            }
+
+            if (existingDetalles.length > 0) {
+                existingDetalles.forEach(function(det) {
+                    var fila = crearFilaConDatos(det);
+                    container.appendChild(fila);
+                });
+                actualizarTotal();
+            }
+
+            var els = document.querySelectorAll('.sd-fade');
+            els.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 80 * i);
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

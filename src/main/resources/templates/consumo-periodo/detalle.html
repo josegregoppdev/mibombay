@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title" th:text="'Consumo ' + (${periodo.tipo == 'SEMANAL'} ? 'Semanal' : 'Mensual')"></h1>
+            <p class="sd-page-desc" th:text="${#temporals.format(periodo.fechaInicio, 'dd/MM/yyyy')} + ' — ' + ${#temporals.format(periodo.fechaFin, 'dd/MM/yyyy')}"></p>
+            <div class="sd-title-accent"></div>
+        </div>
+        <a th:href="@{/admin/consumo-periodo}" class="sd-btn sd-btn--outline">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <div class="sd-section-card sd-fade sd-fade--2">
+        <div class="sd-list-card-header">
+            <span class="sd-list-card-title">
+                <i class="bi bi-box"></i> Detalle del Per&iacute;odo
+            </span>
+            <span>
+                <span class="sa-badge" th:classappend="${periodo.estado.name() == 'BORRADOR'} ? 'sa-badge--profit-mid' : 'sa-badge--profit-high'"
+                      th:text="${periodo.estado.name()}"></span>
+            </span>
+        </div>
+        <div class="sa-table-wrapper">
+            <table class="sa-table">
+                <thead>
+                    <tr>
+                        <th>Ingrediente</th>
+                        <th class="sa-cell-center">Stock Sistema</th>
+                        <th class="sa-cell-center">Merma</th>
+                        <th class="sa-cell-center">Desperdicio</th>
+                        <th class="sa-cell-center">Stock Final</th>
+                        <th class="sa-cell-center" style="color:var(--accent,#d4a853);">Consumido</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="d : ${detalles}" class="sd-table-row">
+                        <td th:text="${d.itemNombre}"></td>
+                        <td class="sa-cell-center sd-stock-value" th:text="${d.stockSistema}"></td>
+                        <td class="sa-cell-center">
+                            <span th:if="${d.merma != null and d.merma.compareTo(0) > 0}" class="sd-stock-warning" th:text="${d.merma}"></span>
+                            <span th:if="${d.merma == null or d.merma.compareTo(0) == 0}" class="sd-muted">0</span>
+                        </td>
+                        <td class="sa-cell-center">
+                            <span th:if="${d.desperdicio != null and d.desperdicio.compareTo(0) > 0}" class="sd-stock-negative" th:text="${d.desperdicio}"></span>
+                            <span th:if="${d.desperdicio == null or d.desperdicio.compareTo(0) == 0}" class="sd-muted">0</span>
+                        </td>
+                        <td class="sa-cell-center sd-stock-value" th:text="${d.stockFinal}"></td>
+                        <td class="sa-cell-center" style="color:var(--accent,#d4a853);font-weight:700;"
+                            th:text="${d.stockSistema - (d.stockFinal != null ? d.stockFinal : 0) - (d.merma != null ? d.merma : 0) - (d.desperdicio != null ? d.desperdicio : 0)}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+.sd-stock-warning { color:#b45309; font-weight:600; }
+.sd-stock-negative { color:#dc2626; font-weight:600; }
+.sa-table { min-width: 700px; }
+</style>
+</body>
+</html>

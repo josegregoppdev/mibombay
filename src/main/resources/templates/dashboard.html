@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header">
+        <div>
+            <h1 class="sd-page-title">Dashboard</h1>
+            <p class="sd-page-desc">Bienvenido, <strong sec:authentication="principal.nombre">Usuario</strong></p>
+        </div>
+        <div class="sd-header-date" th:text="${#temporals.format(#temporals.createNow(), 'EEEE, dd MMMM yyyy', new java.util.Locale('es', 'EC'))}">fecha</div>
+    </div>
+
+    <div class="sd-stats-grid">
+        <div class="sd-stat-card">
+            <div class="sd-stat-icon sd-stat-icon--primary">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div class="sd-stat-body">
+                <span class="sd-stat-value" id="stat-total-ventas"
+                      th:text="${stats != null ? '$' + #numbers.formatDecimal(stats.totalVentasDia, 1, 'COMMA', 0, 'POINT') : '$0'}">$0</span>
+                <span class="sd-stat-label">Ventas del d&iacute;a</span>
+            </div>
+        </div>
+        <div class="sd-stat-card">
+            <div class="sd-stat-icon sd-stat-icon--success">
+                <i class="bi bi-receipt"></i>
+            </div>
+            <div class="sd-stat-body">
+                <span class="sd-stat-value" id="stat-num-ventas"
+                      th:text="${stats != null ? stats.numeroVentasDia : 0}">0</span>
+                <span class="sd-stat-label">Ventas hoy</span>
+            </div>
+        </div>
+        <div class="sd-stat-card">
+            <div class="sd-stat-icon sd-stat-icon--warning">
+                <i class="bi bi-box-seam"></i>
+            </div>
+            <div class="sd-stat-body">
+                <span class="sd-stat-value" id="stat-stock-bajo"
+                      th:text="${stats != null ? stats.productosStockBajo : 0}">0</span>
+                <span class="sd-stat-label">Productos con stock bajo</span>
+            </div>
+        </div>
+        <div class="sd-stat-card">
+            <div class="sd-stat-icon sd-stat-icon--info">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="sd-stat-body">
+                <span class="sd-stat-value" sec:authentication="principal.empresaId">&mdash;</span>
+                <span class="sd-stat-label">ID Empresa</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="sd-section-card">
+        <div class="sd-section-card-header">
+            <h2>M&oacute;dulos del Sistema</h2>
+            <p>Acceso r&aacute;pido a las secciones principales</p>
+        </div>
+        <div class="sd-modules-grid">
+            <a th:href="@{/ventas/pos}" class="sd-module-card" sec:authorize="hasAnyRole('CAJERO','ADMIN')">
+                <div class="sd-module-icon"><i class="bi bi-cart3"></i></div>
+                <div class="sd-module-name">Punto de Venta</div>
+                <div class="sd-module-status sd-module-status--active">Disponible</div>
+            </a>
+            <a th:href="@{/usuarios}" class="sd-module-card" sec:authorize="hasRole('ADMIN')">
+                <div class="sd-module-icon"><i class="bi bi-people"></i></div>
+                <div class="sd-module-name">Usuarios</div>
+                <div class="sd-module-status sd-module-status--active">Disponible</div>
+            </a>
+            <a th:href="@{/config}" class="sd-module-card" sec:authorize="hasRole('ADMIN')">
+                <div class="sd-module-icon"><i class="bi bi-palette"></i></div>
+                <div class="sd-module-name">Personalizar</div>
+                <div class="sd-module-status sd-module-status--active">Disponible</div>
+            </a>
+            <a th:href="@{/productos}" class="sd-module-card" sec:authorize="hasRole('ADMIN')">
+                <div class="sd-module-icon"><i class="bi bi-box"></i></div>
+                <div class="sd-module-name">Productos</div>
+                <div class="sd-module-status sd-module-status--active">Disponible</div>
+            </a>
+            <a th:href="@{/cierzx}" class="sd-module-card" sec:authorize="hasAnyRole('CAJERO','ADMIN')">
+                <div class="sd-module-icon"><i class="bi bi-graph-up"></i></div>
+                <div class="sd-module-name">Reporte X</div>
+                <div class="sd-module-status sd-module-status--active">Disponible</div>
+            </a>
+            <a th:href="@{/cierrez}" class="sd-module-card" sec:authorize="hasRole('ADMIN')">
+                <div class="sd-module-icon"><i class="bi bi-lock"></i></div>
+                <div class="sd-module-name">Cierre Z</div>
+                <div class="sd-module-status sd-module-status--active">Disponible</div>
+            </a>
+        </div>
+    </div>
+
+    <div id="sd-toast-container" style="position:fixed;top:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.75rem;pointer-events:none;"></div>
+
+    <script th:inline="javascript" sec:authorize="hasRole('ADMIN')">
+    (function() {
+        var empresaId = /*[[${stats != null ? stats.empresaId : null}]]*/ null;
+        if (!empresaId) return;
+
+        function formatCOP(n) {
+            return '$' + Math.round(n).toLocaleString('es-CO');
+        }
+
+        function showToast(tipo, data) {
+            var container = document.getElementById('sd-toast-container');
+            var toast = document.createElement('div');
+            toast.style.cssText = 'pointer-events:auto;min-width:300px;max-width:380px;padding:1rem 1.25rem;border-radius:12px;backdrop-filter:blur(12px);font-size:0.9rem;line-height:1.4;box-shadow:0 8px 32px rgba(0,0,0,0.25);animation:sdToastIn 0.3s ease;transition:opacity 0.3s,transform 0.3s;';
+
+            if (tipo === 'NUEVA_VENTA') {
+                toast.style.background = 'rgba(34,197,94,0.15)';
+                toast.style.border = '1px solid rgba(34,197,94,0.3)';
+                toast.style.color = 'var(--content-text, #e5e5e5)';
+                toast.innerHTML = '<div style="display:flex;align-items:center;gap:0.75rem;">'
+                    + '<i class="bi bi-bag-check-fill" style="font-size:1.4rem;color:#22c55e;"></i>'
+                    + '<div><strong>Nueva venta #' + data.ventaId + '</strong><br>'
+                    + '<span style="opacity:0.7;">' + (data.nombreCliente || 'Cliente') + ' &mdash; ' + formatCOP(data.total) + '</span><br>'
+                    + '<span style="opacity:0.5;font-size:0.8rem;">' + (data.metodoPago || '') + ' &middot; ' + (data.nombreUsuario || '') + '</span>'
+                    + '</div></div>';
+            } else if (tipo === 'VENTA_ANULADA') {
+                toast.style.background = 'rgba(239,68,68,0.15)';
+                toast.style.border = '1px solid rgba(239,68,68,0.3)';
+                toast.style.color = 'var(--content-text, #e5e5e5)';
+                toast.innerHTML = '<div style="display:flex;align-items:center;gap:0.75rem;">'
+                    + '<i class="bi bi-bag-x-fill" style="font-size:1.4rem;color:#ef4444;"></i>'
+                    + '<div><strong>Venta #' + data.ventaId + ' anulada</strong></div></div>';
+            }
+
+            container.appendChild(toast);
+            setTimeout(function() {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(function() { toast.remove(); }, 300);
+            }, 5000);
+        }
+
+        function updateStats(stats) {
+            if (!stats) return;
+            var el = document.getElementById('stat-total-ventas');
+            if (el) el.textContent = formatCOP(stats.totalVentasDia || 0);
+            var el2 = document.getElementById('stat-num-ventas');
+            if (el2) el2.textContent = stats.numeroVentasDia || 0;
+            var el3 = document.getElementById('stat-stock-bajo');
+            if (el3) el3.textContent = stats.productosStockBajo || 0;
+        }
+
+        function connect() {
+            if (typeof SockJS === 'undefined' || typeof Stomp === 'undefined') {
+                setTimeout(connect, 2000);
+                return;
+            }
+            var socket = new SockJS('/ws');
+            var stompClient = Stomp.over(socket);
+            stompClient.debug = null;
+
+            stompClient.connect({}, function() {
+                stompClient.subscribe('/topic/empresa/' + empresaId + '/ventas', function(msg) {
+                    var data = JSON.parse(msg.body);
+                    if (data.tipo) showToast(data.tipo, data);
+                    if (data.statsActualizadas) updateStats(data.statsActualizadas);
+                });
+            }, function() {
+                setTimeout(connect, 5000);
+            });
+        }
+
+        connect();
+    })();
+    </script>
+    <style>
+        @keyframes sdToastIn {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+</div>
+</body>
+</html>

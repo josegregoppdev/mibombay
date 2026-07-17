@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title">Ingredientes</h1>
+            <p class="sd-page-desc">Gestiona el inventario de ingredientes</p>
+            <div class="sd-title-accent"></div>
+        </div>
+        <a th:href="@{/ingredientes/nuevo}" class="sd-btn">
+            <i class="bi bi-plus-circle"></i> Nuevo Ingrediente
+        </a>
+    </div>
+
+    <div class="sd-filter-bar sd-fade sd-fade--2">
+        <form th:action="@{/ingredientes}" method="get" class="sd-filter-form">
+            <div class="sd-filter-fields">
+                <div class="sd-filter-field">
+                    <label for="filtroNombre" class="sd-filter-label">
+                        <i class="bi bi-search"></i>
+                    </label>
+                    <input type="text" id="filtroNombre" name="nombre" class="sd-filter-input"
+                           placeholder="Buscar por nombre..."
+                           th:value="${filtroNombre}">
+                </div>
+                <div class="sd-filter-field">
+                    <select id="filtroUnidad" name="unidad" class="sd-filter-input">
+                        <option value="">Todas las unidades</option>
+                        <option th:each="u : ${unidades}" th:value="${u}" th:text="${u}"
+                                th:selected="${filtroUnidad == u}"></option>
+                    </select>
+                    <i class="sd-select-chevron bi bi-chevron-down"></i>
+                </div>
+                <button type="submit" class="sd-btn sd-btn--sm">
+                    <i class="bi bi-funnel"></i> Filtrar
+                </button>
+                <a th:href="@{/ingredientes}" class="sd-btn sd-btn--sm sd-btn--outline">
+                    <i class="bi bi-x-lg"></i> Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="sd-list-card sd-fade sd-fade--3">
+        <div class="sd-list-card-glow"></div>
+
+        <div class="sa-table-wrapper">
+            <table class="sa-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Nombre</th>
+                        <th>Unidad</th>
+                        <th>Stock Actual</th>
+                        <th>Stock M&iacute;nimo</th>
+                        <th>Tipo</th>
+                        <th>Precio Compra</th>
+                        <th class="sa-cell-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="ing : ${page.content}" class="sd-table-row">
+                        <td>
+                            <div class="sd-avatar" th:text="${#strings.substring(ing.nombre, 0, 2)}">IN</div>
+                        </td>
+                        <td>
+                            <div class="sd-user-name" th:text="${ing.nombre}">Nombre</div>
+                        </td>
+                        <td>
+                            <span class="sd-unit-badge" th:text="${ing.unidadMedida}">UNIDAD</span>
+                        </td>
+                        <td>
+                            <span class="sd-stock-value" th:classappend="${ing.stockActual != null and ing.stockMinimo != null and ing.stockActual.compareTo(ing.stockMinimo) <= 0} ? 'sd-stock-value--low' : ''"
+                                  th:text="${ing.stockActual} + ' ' + ${#strings.toLowerCase(ing.unidadMedida)}">0</span>
+                        </td>
+                        <td class="sa-cell-date" th:text="${ing.stockMinimo} + ' ' + ${#strings.toLowerCase(ing.unidadMedida)}">0</td>
+                        <td>
+                            <span th:if="${ing.consumible}" class="sa-badge sa-badge--consumible">Consumible</span>
+                            <span th:if="${!ing.consumible}" class="sa-badge sa-badge--directo">Directo</span>
+                        </td>
+                        <td>
+                            <span th:if="${ing.precioCompra != null}" class="sd-price" th:text="'$' + ${#numbers.formatDecimal(ing.precioCompra, 1, 2)}">$0.00</span>
+                            <span th:unless="${ing.precioCompra != null}" class="sd-user-noinfo">—</span>
+                        </td>
+                        <td>
+                            <div class="sa-actions sa-cell-center">
+                                <a th:href="@{/ingredientes/{id}/editar(id=${ing.id})}" class="sa-btn-icon sa-btn-icon--edit" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form th:action="@{/ingredientes/{id}/eliminar(id=${ing.id})}" method="post"
+                                      style="display:inline"
+                                      onsubmit="return confirm('&iquest;Eliminar este ingrediente?')">
+                                    <button type="submit" class="sa-btn-icon sa-btn-icon--delete" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(page.content)}">
+                        <td colspan="7">
+                            <div class="sd-empty">
+                                <div class="sd-empty-icon">
+                                    <i class="bi bi-box-seam"></i>
+                                </div>
+                                <h3>No hay ingredientes</h3>
+                                <p>A&uacute;n no se han registrado ingredientes.</p>
+                                <a th:href="@{/ingredientes/nuevo}" class="sd-btn">
+                                    <i class="bi bi-plus-circle"></i> Crear primer ingrediente
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="sd-pagination" th:if="${page != null and page.totalPages > 1}">
+        <div class="sd-pagination-info">
+            P&aacute;gina <span th:text="${page.number + 1}">1</span> de <span th:text="${page.totalPages}">1</span>
+            (<span th:text="${page.totalElements}">0</span> resultados)
+        </div>
+        <div class="sd-pagination-links">
+            <a th:href="@{/ingredientes(nombre=${filtroNombre}, unidad=${filtroUnidad}, page=${page.number - 1})}"
+               class="sd-page-link"
+               th:classappend="${page.first} ? 'sd-page-link--disabled' : ''">
+                <i class="bi bi-chevron-left"></i> Anterior
+            </a>
+            <span th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}">
+                <a th:href="@{/ingredientes(nombre=${filtroNombre}, unidad=${filtroUnidad}, page=${i})}"
+                   class="sd-page-link"
+                   th:classappend="${i == page.number} ? 'sd-page-link--active' : ''"
+                   th:text="${i + 1}">1</a>
+            </span>
+            <a th:href="@{/ingredientes(nombre=${filtroNombre}, unidad=${filtroUnidad}, page=${page.number + 1})}"
+               class="sd-page-link"
+               th:classappend="${page.last} ? 'sd-page-link--disabled' : ''">
+                Siguiente <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var els = document.querySelectorAll('.sd-fade');
+            els.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 100 * i);
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

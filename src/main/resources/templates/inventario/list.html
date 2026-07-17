@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title">Inventario Actual</h1>
+            <p class="sd-page-desc">Stock actual de ingredientes y productos</p>
+            <div class="sd-title-accent"></div>
+        </div>
+    </div>
+
+    <div class="sd-filter-bar sd-fade sd-fade--2">
+        <form th:action="@{/inventario}" method="get" class="sd-filter-form">
+            <div class="sd-filter-fields">
+                <div class="sd-filter-field">
+                    <label for="filtroNombre" class="sd-filter-label">
+                        <i class="bi bi-search"></i>
+                    </label>
+                    <input type="text" id="filtroNombre" name="nombre" class="sd-filter-input"
+                           placeholder="Buscar por nombre..."
+                           th:value="${filtroNombre}">
+                </div>
+                <div class="sd-filter-field">
+                    <select id="filtroUnidad" name="unidad" class="sd-filter-input">
+                        <option value="">Todas las unidades</option>
+                        <option th:each="u : ${unidades}" th:value="${u}" th:text="${u}"
+                                th:selected="${filtroUnidad == u}"></option>
+                    </select>
+                    <i class="sd-select-chevron bi bi-chevron-down"></i>
+                </div>
+                <div class="sd-filter-field">
+                    <label for="filtroTipo" class="sd-filter-label">
+                        <i class="bi bi-book"></i>
+                    </label>
+                    <select id="filtroTipo" name="tieneReceta" class="sd-filter-input">
+                        <option value="">Todos los productos</option>
+                        <option value="true" th:selected="${filtroTieneReceta == true}">Con receta</option>
+                        <option value="false" th:selected="${filtroTieneReceta == false}">Sin receta</option>
+                    </select>
+                    <i class="sd-select-chevron bi bi-chevron-down sd-filter-chevron"></i>
+                </div>
+                <button type="submit" class="sd-btn sd-btn--sm">
+                    <i class="bi bi-funnel"></i> Filtrar
+                </button>
+                <a th:href="@{/inventario}" class="sd-btn sd-btn--sm sd-btn--outline">
+                    <i class="bi bi-x-lg"></i> Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="sd-list-card sd-fade sd-fade--3">
+        <div class="sd-list-card-glow"></div>
+        <div class="sd-list-card-header">
+            <div class="sd-list-card-title">
+                <i class="bi bi-box-seam"></i>
+                <span>Ingredientes</span>
+            </div>
+        </div>
+
+        <div class="sa-table-wrapper">
+            <table class="sa-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Unidad</th>
+                        <th class="sa-cell-right">Stock Actual</th>
+                        <th class="sa-cell-right">Stock M&iacute;nimo</th>
+                        <th class="sa-cell-center">Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="ing : ${pageIngredientes.content}" class="sd-table-row">
+                        <td th:text="${ing.nombre}">Ingrediente</td>
+                        <td>
+                            <span class="sd-unit-badge" th:text="${ing.unidadMedida}">UNIDAD</span>
+                        </td>
+                        <td class="sa-cell-right" th:text="${#numbers.formatDecimal(ing.stockActual, 1, 3)}">0.000</td>
+                        <td class="sa-cell-right" th:text="${#numbers.formatDecimal(ing.stockMinimo, 1, 3)}">0.000</td>
+                        <td class="sa-cell-center">
+                            <span th:if="${ing.stockActual != null and ing.stockActual.compareTo(0) <= 0}"
+                                  class="sa-badge sa-badge--delete">Sin stock</span>
+                            <span th:if="${ing.stockActual != null and ing.stockActual.compareTo(0) > 0 and ing.stockMinimo != null and ing.stockActual.compareTo(ing.stockMinimo) < 0}"
+                                  class="sa-badge sa-badge--profit-low">Stock bajo</span>
+                            <span th:if="${ing.stockActual != null and ing.stockActual.compareTo(0) > 0 and (ing.stockMinimo == null or ing.stockActual.compareTo(ing.stockMinimo) >= 0)}"
+                                  class="sa-badge sa-badge--profit-high">OK</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(pageIngredientes.content)}">
+                        <td colspan="5">
+                            <div class="sd-empty">
+                                <div class="sd-empty-icon">
+                                    <i class="bi bi-box-seam"></i>
+                                </div>
+                                <h3>No hay ingredientes</h3>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="sd-pagination" th:if="${pageIngredientes != null and pageIngredientes.totalPages > 1}">
+        <div class="sd-pagination-info">
+            P&aacute;gina <span th:text="${pageIngredientes.number + 1}">1</span> de <span th:text="${pageIngredientes.totalPages}">1</span>
+            (<span th:text="${pageIngredientes.totalElements}">0</span> ingredientes)
+        </div>
+        <div class="sd-pagination-links">
+            <a th:href="@{/inventario(nombre=${filtroNombre}, unidad=${filtroUnidad}, tieneReceta=${filtroTieneReceta}, pageIng=${pageIngredientes.number - 1}, pageProd=${pageProductos != null ? pageProductos.number : 0})}"
+               class="sd-page-link"
+               th:classappend="${pageIngredientes.first} ? 'sd-page-link--disabled' : ''">
+                <i class="bi bi-chevron-left"></i> Anterior
+            </a>
+            <span th:each="i : ${#numbers.sequence(0, pageIngredientes.totalPages - 1)}">
+                <a th:href="@{/inventario(nombre=${filtroNombre}, unidad=${filtroUnidad}, tieneReceta=${filtroTieneReceta}, pageIng=${i}, pageProd=${pageProductos != null ? pageProductos.number : 0})}"
+                   class="sd-page-link"
+                   th:classappend="${i == pageIngredientes.number} ? 'sd-page-link--active' : ''"
+                   th:text="${i + 1}">1</a>
+            </span>
+            <a th:href="@{/inventario(nombre=${filtroNombre}, unidad=${filtroUnidad}, tieneReceta=${filtroTieneReceta}, pageIng=${pageIngredientes.number + 1}, pageProd=${pageProductos != null ? pageProductos.number : 0})}"
+               class="sd-page-link"
+               th:classappend="${pageIngredientes.last} ? 'sd-page-link--disabled' : ''">
+                Siguiente <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="sd-list-card sd-fade sd-fade--4">
+        <div class="sd-list-card-glow"></div>
+        <div class="sd-list-card-header">
+            <div class="sd-list-card-title">
+                <i class="bi bi-box"></i>
+                <span>Productos</span>
+            </div>
+        </div>
+
+        <div class="sa-table-wrapper">
+            <table class="sa-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th class="sa-cell-right">Stock</th>
+                        <th class="sa-cell-right">Precio Venta</th>
+                        <th class="sa-cell-center">Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="p : ${pageProductos.content}" class="sd-table-row">
+                        <td th:text="${p.nombre}">Producto</td>
+                        <td>
+                            <span th:if="${p.tieneReceta}" class="sa-badge sa-badge--info">Con receta</span>
+                            <span th:unless="${p.tieneReceta}" class="sa-badge sa-badge--profit-mid">Simple</span>
+                        </td>
+                        <td class="sa-cell-right" th:text="${#numbers.formatDecimal(p.stockActual, 1, 3)}">0.000</td>
+                        <td class="sa-cell-right" th:text="'$' + ${#numbers.formatDecimal(p.precioVenta, 1, 2)}">$0.00</td>
+                        <td class="sa-cell-center">
+                            <span th:if="${p.stockActual != null and p.stockActual.compareTo(0) <= 0}"
+                                  class="sa-badge sa-badge--delete">Sin stock</span>
+                            <span th:if="${p.stockActual != null and p.stockActual.compareTo(0) > 0}"
+                                  class="sa-badge sa-badge--profit-high">Disponible</span>
+                            <span th:if="${p.stockActual == null}"
+                                  class="sa-badge sa-badge--profit-low">N/A</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(pageProductos.content)}">
+                        <td colspan="5">
+                            <div class="sd-empty">
+                                <div class="sd-empty-icon">
+                                    <i class="bi bi-box"></i>
+                                </div>
+                                <h3>No hay productos</h3>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="sd-pagination" th:if="${pageProductos != null and pageProductos.totalPages > 1}">
+        <div class="sd-pagination-info">
+            P&aacute;gina <span th:text="${pageProductos.number + 1}">1</span> de <span th:text="${pageProductos.totalPages}">1</span>
+            (<span th:text="${pageProductos.totalElements}">0</span> productos)
+        </div>
+        <div class="sd-pagination-links">
+            <a th:href="@{/inventario(nombre=${filtroNombre}, unidad=${filtroUnidad}, tieneReceta=${filtroTieneReceta}, pageIng=${pageIngredientes != null ? pageIngredientes.number : 0}, pageProd=${pageProductos.number - 1})}"
+               class="sd-page-link"
+               th:classappend="${pageProductos.first} ? 'sd-page-link--disabled' : ''">
+                <i class="bi bi-chevron-left"></i> Anterior
+            </a>
+            <span th:each="i : ${#numbers.sequence(0, pageProductos.totalPages - 1)}">
+                <a th:href="@{/inventario(nombre=${filtroNombre}, unidad=${filtroUnidad}, tieneReceta=${filtroTieneReceta}, pageIng=${pageIngredientes != null ? pageIngredientes.number : 0}, pageProd=${i})}"
+                   class="sd-page-link"
+                   th:classappend="${i == pageProductos.number} ? 'sd-page-link--active' : ''"
+                   th:text="${i + 1}">1</a>
+            </span>
+            <a th:href="@{/inventario(nombre=${filtroNombre}, unidad=${filtroUnidad}, tieneReceta=${filtroTieneReceta}, pageIng=${pageIngredientes != null ? pageIngredientes.number : 0}, pageProd=${pageProductos.number + 1})}"
+               class="sd-page-link"
+               th:classappend="${pageProductos.last} ? 'sd-page-link--disabled' : ''">
+                Siguiente <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var els = document.querySelectorAll('.sd-fade');
+            els.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 100 * i);
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

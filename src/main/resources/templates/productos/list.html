@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title">Productos</h1>
+            <p class="sd-page-desc">Gestiona el cat&aacute;logo de productos</p>
+            <div class="sd-title-accent"></div>
+        </div>
+        <a th:href="@{/productos/nuevo}" class="sd-btn">
+            <i class="bi bi-plus-circle"></i> Nuevo Producto
+        </a>
+    </div>
+
+    <div class="sd-filter-bar sd-fade sd-fade--2">
+        <form th:action="@{/productos}" method="get" class="sd-filter-form">
+            <div class="sd-filter-fields">
+                <div class="sd-filter-field">
+                    <label for="filtroNombre" class="sd-filter-label">
+                        <i class="bi bi-search"></i>
+                    </label>
+                    <input type="text" id="filtroNombre" name="nombre" class="sd-filter-input"
+                           placeholder="Buscar por nombre..."
+                           th:value="${filtroNombre}">
+                </div>
+                <div class="sd-filter-field">
+                    <label for="filtroTipo" class="sd-filter-label">
+                        <i class="bi bi-book"></i>
+                    </label>
+                    <select id="filtroTipo" name="tieneReceta" class="sd-filter-input">
+                        <option value="">Todos</option>
+                        <option value="true" th:selected="${filtroTieneReceta == true}">Con receta</option>
+                        <option value="false" th:selected="${filtroTieneReceta == false}">Sin receta</option>
+                    </select>
+                    <i class="sd-select-chevron bi bi-chevron-down sd-filter-chevron"></i>
+                </div>
+                <button type="submit" class="sd-btn sd-btn--sm">
+                    <i class="bi bi-funnel"></i> Filtrar
+                </button>
+                <a th:href="@{/productos}" class="sd-btn sd-btn--sm sd-btn--outline">
+                    <i class="bi bi-x-lg"></i> Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="sd-list-card sd-fade sd-fade--3">
+        <div class="sd-list-card-glow"></div>
+
+        <div class="sa-table-wrapper">
+            <table class="sa-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Nombre</th>
+                        <th>Precio Venta</th>
+                        <th>Costo</th>
+                        <th>Margen</th>
+                        <th>Tipo</th>
+                        <th class="sa-cell-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="p : ${page.content}" class="sd-table-row">
+                        <td>
+                            <div class="sd-avatar" th:text="${#strings.substring(p.nombre, 0, 2)}">PR</div>
+                        </td>
+                        <td>
+                            <div class="sd-user-name" th:text="${p.nombre}">Nombre</div>
+                        </td>
+                        <td>
+                            <span class="sd-price" th:text="'$' + ${#numbers.formatDecimal(p.precioVenta, 1, 2)}">$0.00</span>
+                        </td>
+                        <td>
+                            <span th:if="${p.costoReceta != null}" class="sd-price" th:text="'$' + ${#numbers.formatDecimal(p.costoReceta, 1, 2)}">$0.00</span>
+                            <span th:if="${p.costoReceta == null and p.precioCompra != null}" class="sd-price" th:text="'$' + ${#numbers.formatDecimal(p.precioCompra, 1, 2)}">$0.00</span>
+                            <span th:if="${p.costoReceta == null and p.precioCompra == null}" class="sd-muted">—</span>
+                        </td>
+                        <td>
+                            <span th:if="${p.margenGanancia != null}"
+                                  class="sa-badge"
+                                  th:classappend="${p.margenGanancia >= 40} ? 'sa-badge--profit-high' : (${p.margenGanancia >= 20} ? 'sa-badge--profit-mid' : 'sa-badge--profit-low')"
+                                  th:text="${#numbers.formatDecimal(p.margenGanancia, 1, 1)} + '%'">40%</span>
+                            <span th:if="${p.margenGanancia == null}" class="sd-muted">—</span>
+                        </td>
+                        <td>
+                            <span th:if="${p.tieneReceta}" class="sa-badge sa-badge--recipe">
+                                <i class="bi bi-book"></i> Con receta
+                            </span>
+                            <span th:unless="${p.tieneReceta}" class="sa-badge sa-badge--simple">
+                                <i class="bi bi-box"></i> Simple
+                            </span>
+                        </td>
+                        <td>
+                            <div class="sa-actions sa-cell-center">
+                                <a th:if="${p.tieneReceta}" th:href="@{/productos/{id}/receta(id=${p.id})}" class="sa-btn-icon sa-btn-icon--recipe" title="Receta">
+                                    <i class="bi bi-book"></i>
+                                </a>
+                                <a th:href="@{/productos/{id}/editar(id=${p.id})}" class="sa-btn-icon sa-btn-icon--edit" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form th:action="@{/productos/{id}/eliminar(id=${p.id})}" method="post"
+                                      style="display:inline"
+                                      onsubmit="return confirm('&iquest;Eliminar este producto?')">
+                                    <button type="submit" class="sa-btn-icon sa-btn-icon--delete" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(page.content)}">
+                        <td colspan="7">
+                            <div class="sd-empty">
+                                <div class="sd-empty-icon">
+                                    <i class="bi bi-box-seam"></i>
+                                </div>
+                                <h3>No hay productos</h3>
+                                <p>A&uacute;n no se han registrado productos.</p>
+                                <a th:href="@{/productos/nuevo}" class="sd-btn">
+                                    <i class="bi bi-plus-circle"></i> Crear primer producto
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="sd-pagination" th:if="${page != null and page.totalPages > 1}">
+        <div class="sd-pagination-info">
+            P&aacute;gina <span th:text="${page.number + 1}">1</span> de <span th:text="${page.totalPages}">1</span>
+            (<span th:text="${page.totalElements}">0</span> resultados)
+        </div>
+        <div class="sd-pagination-links">
+            <a th:href="@{/productos(nombre=${filtroNombre}, tieneReceta=${filtroTieneReceta}, page=${page.number - 1})}"
+               class="sd-page-link"
+               th:classappend="${page.first} ? 'sd-page-link--disabled' : ''">
+                <i class="bi bi-chevron-left"></i> Anterior
+            </a>
+            <span th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}">
+                <a th:href="@{/productos(nombre=${filtroNombre}, tieneReceta=${filtroTieneReceta}, page=${i})}"
+                   class="sd-page-link"
+                   th:classappend="${i == page.number} ? 'sd-page-link--active' : ''"
+                   th:text="${i + 1}">1</a>
+            </span>
+            <a th:href="@{/productos(nombre=${filtroNombre}, tieneReceta=${filtroTieneReceta}, page=${page.number + 1})}"
+               class="sd-page-link"
+               th:classappend="${page.last} ? 'sd-page-link--disabled' : ''">
+                Siguiente <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var els = document.querySelectorAll('.sd-fade');
+            els.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 100 * i);
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

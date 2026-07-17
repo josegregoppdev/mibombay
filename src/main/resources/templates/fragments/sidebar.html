@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="es"
+      th:fragment="sidebar">
+<nav class="sd-sidebar">
+    <div class="sd-sidebar-inner">
+        <!-- Empresa branding -->
+        <div class="sd-brand" th:if="${empresaConfig != null}">
+            <div class="sd-brand-avatar" th:text="${#strings.substring(empresaConfig.nombre(), 0, 2)}">MB</div>
+            <div class="sd-brand-info">
+                <span class="sd-brand-name" th:text="${empresaConfig.nombre()}">Mi Bombay</span>
+                <span class="sd-brand-sub" th:text="${empresaConfig.subdominio()}">demo</span>
+            </div>
+        </div>
+
+        <!-- Section: Principal -->
+        <div class="sd-section-label">Principal</div>
+        <ul class="sd-nav">
+            <li>
+                <a th:href="@{/dashboard}" class="sd-link" th:classappend="${currentUri == '/dashboard'} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+        </ul>
+
+        <!-- Section: Operaciones -->
+        <div class="sd-section-label">Operaciones</div>
+        <ul class="sd-nav">
+            <li sec:authorize="hasAnyRole('CAJERO','ADMIN')">
+                <a th:href="@{/ventas/pos}" class="sd-link" th:classappend="${#strings.startsWith(currentUri, '/ventas/pos')} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    <span>PDV / Caja</span>
+                </a>
+            </li>
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/productos}" class="sd-link" th:classappend="${#strings.startsWith(currentUri, '/productos')} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    <span>Productos</span>
+                </a>
+            </li>
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/ingredientes}" class="sd-link" th:classappend="${#strings.startsWith(currentUri, '/ingredientes')} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29a1 1 0 0 0 1.42 0l6.58-6.58a1 1 0 0 0 0-1.42L12 2z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    <span>Ingredientes</span>
+                </a>
+            </li>
+            <li sec:authorize="hasAnyRole('ADMIN','INVENTARIO')">
+                <a th:href="@{#}" class="sd-link sd-link--disabled" title="Próximamente">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    <span>Recetas</span>
+                    <span class="sd-badge">Pronto</span>
+                </a>
+            </li>
+        </ul>
+
+        <!-- Section: Clientes -->
+        <div class="sd-section-label">Clientes</div>
+        <ul class="sd-nav">
+            <li sec:authorize="hasAnyRole('CAJERO','ADMIN')">
+                <a th:href="@{/clientes}" class="sd-link" th:classappend="${#strings.startsWith(currentUri, '/clientes')} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span>Clientes</span>
+                </a>
+            </li>
+        </ul>
+
+        <!-- Section: Proveedores -->
+        <div class="sd-section-label">Proveedores</div>
+        <ul class="sd-nav">
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/proveedores}" class="sd-link" th:classappend="${#strings.startsWith(currentUri, '/proveedores')} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                    <span>Proveedores</span>
+                </a>
+            </li>
+        </ul>
+
+        <!-- Section: Informes -->
+        <div class="sd-section-label">Informes</div>
+        <ul class="sd-nav">
+            <li sec:authorize="hasAnyRole('CAJERO','ADMIN')">
+                <a th:href="@{/cierzx}" class="sd-link" th:classappend="${#strings.startsWith(currentUri, '/cierzx')} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    <span>Reporte X</span>
+                </a>
+            </li>
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/cierrez}" class="sd-link" th:classappend="${#strings.startsWith(currentUri, '/cierrez') && !#strings.startsWith(currentUri, '/admin')} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>Cierre Z</span>
+                </a>
+            </li>
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/admin/cuadreCaja}" class="sd-link" th:classappend="${currentUri == '/admin/cuadreCaja'} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
+                    <span>Cuadre de Caja</span>
+                </a>
+            </li>
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/admin/cuadreCaja/historial}" class="sd-link" th:classappend="${currentUri == '/admin/cuadreCaja/historial'} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>Historial Cuadres</span>
+                </a>
+            </li>
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/reportes/consumo}" class="sd-link" th:classappend="${#strings.startsWith(currentUri, '/reportes/consumo')} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+                    <span>Reporte Consumo</span>
+                </a>
+            </li>
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/admin/food-cost}" class="sd-link" th:classappend="${currentUri == '/admin/food-cost'} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+                    <span>Costo Comida</span>
+                </a>
+            </li>
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/admin/food-cost/historico}" class="sd-link" th:classappend="${#strings.startsWith(currentUri, '/admin/food-cost/historico')} ? 'sd-link--active' : ''"
+                   style="padding-left:2.5rem;font-size:0.85rem;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span>Hist&oacute;rico</span>
+                </a>
+            </li>
+        </ul>
+
+        <!-- Section: Gestión -->
+        <div class="sd-section-label">Gesti&oacute;n</div>
+        <ul class="sd-nav">
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/inventario}" class="sd-link" th:classappend="${#strings.startsWith(currentUri, '/inventario')} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                    <span>Inventario</span>
+                </a>
+            </li>
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/compras}" class="sd-link" th:classappend="${#strings.startsWith(currentUri, '/compras')} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    <span>Compras</span>
+                </a>
+            </li>
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/movimientos}" class="sd-link" th:classappend="${#strings.startsWith(currentUri, '/movimientos')} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    <span>Movimientos</span>
+                </a>
+            </li>
+            <li sec:authorize="hasAnyRole('ADMIN','INVENTARIO')">
+                <a th:href="@{/inventario-fisico}" class="sd-link" th:classappend="${#strings.startsWith(currentUri, '/inventario-fisico')} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    <span>Inventario F&iacute;sico</span>
+                </a>
+            </li>
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/admin/consumo-periodo}" class="sd-link" th:classappend="${#strings.startsWith(currentUri, '/admin/consumo-periodo')} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="12" x2="2" y2="12"/><path d="M12 2v20"/><path d="M5 8l7 4 7-4"/></svg>
+                    <span>Consumo Indirecto</span>
+                </a>
+            </li>
+        </ul>
+
+        <!-- Section: Administración -->
+        <div class="sd-section-label">Administraci&oacute;n</div>
+        <ul class="sd-nav">
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/usuarios}" class="sd-link" th:classappend="${currentUri.startsWith('/usuarios')} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span>Usuarios</span>
+                </a>
+            </li>
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/config}" class="sd-link" th:classappend="${currentUri == '/config'} ? 'sd-link--active' : ''">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                    <span>Personalizar</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+</html>

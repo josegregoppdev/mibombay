@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title">Compras</h1>
+            <p class="sd-page-desc">Gesti&oacute;n de compras de ingredientes y productos</p>
+            <div class="sd-title-accent"></div>
+        </div>
+        <a th:href="@{/compras/nueva}" class="sd-btn">
+            <i class="bi bi-plus-circle"></i> Nueva Compra
+        </a>
+    </div>
+
+    <div class="sd-filter-bar sd-fade sd-fade--2">
+        <form th:action="@{/compras}" method="get" class="sd-filter-form">
+            <div class="sd-filter-fields">
+                <div class="sd-filter-field">
+                    <label for="filtroBusqueda" class="sd-filter-label">
+                        <i class="bi bi-search"></i>
+                    </label>
+                    <input type="text" id="filtroBusqueda" name="busqueda" class="sd-filter-input"
+                           placeholder="Buscar por factura..."
+                           th:value="${filtroBusqueda}">
+                </div>
+                <div class="sd-filter-field">
+                    <label for="filtroProveedor" class="sd-filter-label">
+                        <i class="bi bi-truck"></i>
+                    </label>
+                    <select id="filtroProveedor" name="proveedorId" class="sd-filter-input">
+                        <option value="">Todos los proveedores</option>
+                        <option th:each="prov : ${proveedores}"
+                                th:value="${prov.id}"
+                                th:selected="${filtroProveedorId != null and prov.id eq filtroProveedorId}"
+                                th:text="${prov.razonSocial}">Proveedor</option>
+                    </select>
+                </div>
+                <div class="sd-filter-field">
+                    <label for="filtroFechaDesde" class="sd-filter-label">
+                        <i class="bi bi-calendar"></i> Desde
+                    </label>
+                    <input type="text" id="filtroFechaDesde" name="fechaDesde" class="sd-filter-input"
+                           th:value="${filtroFechaDesde}">
+                </div>
+                <div class="sd-filter-field">
+                    <label for="filtroFechaHasta" class="sd-filter-label">
+                        <i class="bi bi-calendar"></i> Hasta
+                    </label>
+                    <input type="text" id="filtroFechaHasta" name="fechaHasta" class="sd-filter-input"
+                           th:value="${filtroFechaHasta}">
+                </div>
+                <button type="submit" class="sd-btn sd-btn--sm">
+                    <i class="bi bi-funnel"></i> Filtrar
+                </button>
+                <a th:href="@{/compras}" class="sd-btn sd-btn--sm sd-btn--outline">
+                    <i class="bi bi-x-lg"></i> Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="sd-list-card sd-fade sd-fade--3">
+        <div class="sd-list-card-glow"></div>
+
+        <div class="sa-table-wrapper">
+            <table class="sa-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Proveedor</th>
+                        <th>Factura</th>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th class="sa-cell-right">Total</th>
+                        <th class="sa-cell-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="p : ${page.content}" class="sd-table-row">
+                        <td th:text="${p.id}">1</td>
+                        <td th:text="${p.nombreProveedor}">Proveedor</td>
+                        <td>
+                            <span th:if="${p.numeroFactura != null}" th:text="${p.numeroFactura}">FAC-001</span>
+                            <span th:unless="${p.numeroFactura != null}" class="sd-user-noinfo">&mdash;</span>
+                        </td>
+                        <td th:text="${#temporals.format(p.fechaCompra, 'dd/MM/yyyy HH:mm')}">01/01/2025</td>
+                        <td>
+                            <span class="sa-badge"
+                                  th:classappend="${p.tipo == 'INGREDIENTES'} ? 'sa-badge--info' : (${p.tipo == 'PRODUCTOS'} ? 'sa-badge--profit-mid' : 'sa-badge--profit-high')"
+                                  th:text="${p.tipo}">MIXTO</span>
+                        </td>
+                        <td class="sa-cell-right" th:text="${#numbers.formatDecimal(p.total, 0, 'COMMA', 2, 'POINT')}">$0.00</td>
+                        <td>
+                            <div class="sa-actions sa-cell-center">
+                                <a th:href="@{/compras/{id}(id=${p.id})}" class="sa-btn-icon" title="Ver detalle">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a th:href="@{/compras/{id}/editar(id=${p.id})}" class="sa-btn-icon" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form th:action="@{/compras/{id}/anular(id=${p.id})}" method="post"
+                                      style="display:inline"
+                                      onsubmit="return confirm('&iquest;Anular esta compra? Se revertir&aacute; el stock.')">
+                                    <button type="submit" class="sa-btn-icon sa-btn-icon--delete" title="Anular">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(page.content)}">
+                        <td colspan="7">
+                            <div class="sd-empty">
+                                <div class="sd-empty-icon">
+                                    <i class="bi bi-cart"></i>
+                                </div>
+                                <h3>No hay compras registradas</h3>
+                                <p>A&uacute;n no se han registrado compras.</p>
+                                <a th:href="@{/compras/nueva}" class="sd-btn">
+                                    <i class="bi bi-plus-circle"></i> Registrar primera compra
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="sd-pagination" th:if="${page != null and page.totalPages > 1}">
+        <div class="sd-pagination-info">
+            P&aacute;gina <span th:text="${page.number + 1}">1</span> de <span th:text="${page.totalPages}">1</span>
+            (<span th:text="${page.totalElements}">0</span> resultados)
+        </div>
+        <div class="sd-pagination-links">
+            <a th:href="@{/compras(busqueda=${filtroBusqueda}, proveedorId=${filtroProveedorId}, fechaDesde=${filtroFechaDesde}, fechaHasta=${filtroFechaHasta}, page=${page.number - 1})}"
+               class="sd-page-link"
+               th:classappend="${page.first} ? 'sd-page-link--disabled' : ''">
+                <i class="bi bi-chevron-left"></i> Anterior
+            </a>
+            <span th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}">
+                <a th:href="@{/compras(busqueda=${filtroBusqueda}, proveedorId=${filtroProveedorId}, fechaDesde=${filtroFechaDesde}, fechaHasta=${filtroFechaHasta}, page=${i})}"
+                   class="sd-page-link"
+                   th:classappend="${i == page.number} ? 'sd-page-link--active' : ''"
+                   th:text="${i + 1}">1</a>
+            </span>
+            <a th:href="@{/compras(busqueda=${filtroBusqueda}, proveedorId=${filtroProveedorId}, fechaDesde=${filtroFechaDesde}, fechaHasta=${filtroFechaHasta}, page=${page.number + 1})}"
+               class="sd-page-link"
+               th:classappend="${page.last} ? 'sd-page-link--disabled' : ''">
+                Siguiente <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var els = document.querySelectorAll('.sd-fade');
+            els.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 100 * i);
+            });
+
+            flatpickr('#filtroFechaDesde', {
+                locale: 'es',
+                dateFormat: 'Y-m-d',
+                allowInput: true,
+                placeholder: 'Desde'
+            });
+
+            flatpickr('#filtroFechaHasta', {
+                locale: 'es',
+                dateFormat: 'Y-m-d',
+                allowInput: true,
+                placeholder: 'Hasta'
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

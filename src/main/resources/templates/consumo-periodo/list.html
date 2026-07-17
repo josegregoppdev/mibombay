@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title">Consumo Indirecto</h1>
+            <p class="sd-page-desc">Registro de consumo semanal y mensual de ingredientes consumibles (aceite, sal, especias...)</p>
+            <div class="sd-title-accent"></div>
+        </div>
+        <div style="display:flex;gap:0.5rem;">
+            <a th:href="@{/admin/consumo-periodo/nuevo(tipo='SEMANAL')}" class="sd-btn">
+                <i class="bi bi-plus-circle"></i> Nuevo Semanal
+            </a>
+            <a th:href="@{/admin/consumo-periodo/nuevo(tipo='MENSUAL')}" class="sd-btn sd-btn--outline">
+                <i class="bi bi-plus-circle"></i> Nuevo Mensual
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(periodos)}" class="sd-section-card sd-fade sd-fade--2" style="text-align:center;padding:3rem;">
+        <i class="bi bi-inbox" style="font-size:2.5rem;color:var(--content-text-muted, #9a8a7a);"></i>
+        <p class="sd-muted" style="margin-top:0.75rem;">No hay períodos de consumo registrados. Cree uno nuevo.</p>
+    </div>
+
+    <div th:if="${!#lists.isEmpty(periodos)}" class="sd-section-card sd-fade sd-fade--2">
+        <div class="sa-table-wrapper">
+            <table class="sa-table">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Per&iacute;odo</th>
+                        <th class="sa-cell-center">Items</th>
+                        <th class="sa-cell-center">Total Consumido</th>
+                        <th class="sa-cell-center">Estado</th>
+                        <th class="sa-cell-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="p : ${periodos}" class="sd-table-row">
+                        <td>
+                            <span class="sa-badge" th:classappend="${p.tipo == 'SEMANAL'} ? 'sa-badge--profit-mid' : 'sa-badge--profit-high'"
+                                  th:text="${p.tipo}"></span>
+                        </td>
+                        <td th:text="${#temporals.format(p.fechaInicio, 'dd/MM')} + ' — ' + ${#temporals.format(p.fechaFin, 'dd/MM/yyyy')}"></td>
+                        <td class="sa-cell-center" th:text="${p.totalItems}"></td>
+                        <td class="sa-cell-center sd-stock-value" th:text="${p.totalConsumido}"></td>
+                        <td class="sa-cell-center">
+                            <span th:if="${p.estado == 'BORRADOR'}" class="sa-badge sd-bg-warning-soft">Borrador</span>
+                            <span th:if="${p.estado == 'CONFIRMADO'}" class="sa-badge sd-bg-success-soft">Confirmado</span>
+                        </td>
+                        <td class="sa-cell-center">
+                            <div style="display:flex;gap:0.3rem;justify-content:center;">
+                                <a th:href="@{/admin/consumo-periodo/{id}(id=${p.id})}" class="sa-btn-icon" title="Ver detalle">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a th:if="${p.estado == 'BORRADOR'}" th:href="@{/admin/consumo-periodo/{id}/editar(id=${p.id})}" class="sa-btn-icon" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<style>
+.sa-table { min-width: 600px; }
+</style>
+</body>
+</html>

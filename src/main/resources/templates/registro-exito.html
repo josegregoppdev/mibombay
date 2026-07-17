@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Empresa Creada - Mi Bombay</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:opsz,wght@14..32,300;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="exito-body">
+    <div class="bg-grain"></div>
+    <div class="bg-glow"></div>
+
+    <div class="exito-wrapper">
+        <div class="exito-icon">&#10003;</div>
+        <h1 class="exito-titulo">Empresa creada exitosamente</h1>
+
+        <div class="exito-card">
+            <div class="exito-datos">
+                <div class="exito-dato">
+                    <span class="exito-label">Empresa</span>
+                    <span class="exito-valor" th:text="${registro.nombreEmpresa}"></span>
+                </div>
+                <div class="exito-dato">
+                    <span class="exito-label">Subdominio</span>
+                    <span class="exito-valor" th:text="${registro.subdominio}"></span>
+                </div>
+                <div class="exito-dato">
+                    <span class="exito-label">C&oacute;digo de empresa</span>
+                    <span class="exito-valor exito-codigo" th:text="${registro.empresaId}"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="exito-aviso">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span>Estas credenciales se muestran <strong>una sola vez</strong>. Gu&aacute;rdalas antes de continuar.</span>
+        </div>
+
+        <div class="credenciales-grid">
+            <div class="credencial-card credencial-admin">
+                <div class="credencial-rol">ADMIN</div>
+                <div class="credencial-item">
+                    <span class="credencial-label">Usuario</span>
+                    <span class="credencial-valor" th:text="${registro.adminUsername}"></span>
+                </div>
+                <div class="credencial-item">
+                    <span class="credencial-label">Clave</span>
+                    <span class="credencial-valor" th:text="${registro.adminPassword}"></span>
+                </div>
+            </div>
+            <div class="credencial-card credencial-cajero">
+                <div class="credencial-rol">CAJERO</div>
+                <div class="credencial-item">
+                    <span class="credencial-label">Usuario</span>
+                    <span class="credencial-valor" th:text="${registro.cajeroUsername}"></span>
+                </div>
+                <div class="credencial-item">
+                    <span class="credencial-label">Clave</span>
+                    <span class="credencial-valor" th:text="${registro.cajeroPassword}"></span>
+                </div>
+            </div>
+        </div>
+
+        <a href="/login" class="exito-btn">Ir al inicio de sesi&oacute;n</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div th:if="${success}" class="sd-alert sd-alert--success" th:text="${success}"></div>
+    <div th:if="${error}" class="sd-alert sd-alert--error" th:text="${error}"></div>
+
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title">
+                <i th:if="${reporte.cierreRealizado}" class="bi bi-check-circle sd-text-success"></i>
+                <i th:unless="${reporte.cierreRealizado}" class="bi bi-lock-fill"></i>
+                Cierre Z
+            </h1>
+            <p class="sd-page-desc" th:text="'Cuadre de caja del ' + ${#temporals.format(reporte.fecha, 'dd ''de'' MMMM ''de'' yyyy')}">14 de junio de 2026</p>
+            <div class="sd-title-accent"></div>
+        </div>
+        <div class="sd-page-actions">
+            <a th:href="@{/ventas}" class="sd-btn sd-btn--outline">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+            <a th:href="@{/cierrez/pdf}" class="sd-btn">
+                <i class="bi bi-file-pdf"></i> PDF
+            </a>
+        </div>
+    </div>
+
+    <!-- Estado del cierre -->
+    <div class="sd-info-grid sd-fade sd-fade--2">
+        <div class="sd-info-card" th:classappend="${reporte.cierreRealizado} ? 'sd-info-card--success' : ''">
+            <div class="sd-info-label">Estado</div>
+            <div class="sd-info-value">
+                <span th:if="${reporte.cierreRealizado}" class="sa-badge sa-badge--profit-high sd-text-success" style="font-size:0.85rem;">
+                    <i class="bi bi-check-circle"></i> Cierre realizado
+                </span>
+                <span th:unless="${reporte.cierreRealizado}" class="sa-badge sd-bg-warning-soft" style="font-size:0.85rem;">
+                    <i class="bi bi-hourglass-split"></i> Pendiente
+                </span>
+            </div>
+        </div>
+        <div class="sd-info-card" th:if="${reporte.cierreRealizado}">
+            <div class="sd-info-label">Cerrado por</div>
+            <div class="sd-info-value" th:text="${reporte.nombreUsuarioCierre}">Admin</div>
+        </div>
+        <div class="sd-info-card" th:if="${reporte.cierreRealizado}">
+            <div class="sd-info-label">Fecha de cierre</div>
+            <div class="sd-info-value" th:text="${#temporals.format(reporte.fechaCierre, 'dd/MM/yyyy HH:mm')}">14/06/2026 18:30</div>
+        </div>
+    </div>
+
+    <!-- Totales -->
+    <div class="sd-info-grid sd-fade sd-fade--3">
+        <div class="sd-info-card sd-info-card--accent">
+            <div class="sd-info-label">Ventas realizadas</div>
+            <div class="sd-info-value" style="font-size:2rem;" th:text="${reporte.cantidadVentas}">0</div>
+        </div>
+        <div class="sd-info-card">
+            <div class="sd-info-label">Total recaudado</div>
+            <div class="sd-info-value sd-info-value--accent" th:text="'$' + ${#numbers.formatDecimal(reporte.totalVentas, 1, 2)}">$0.00</div>
+        </div>
+        <div class="sd-info-card">
+            <div class="sd-info-label">Efectivo</div>
+            <div class="sd-info-value" th:text="'$' + ${#numbers.formatDecimal(reporte.totalEfectivo, 1, 2)}">$0.00</div>
+        </div>
+        <div class="sd-info-card">
+            <div class="sd-info-label">Transferencia</div>
+            <div class="sd-info-value" th:text="'$' + ${#numbers.formatDecimal(reporte.totalTransferencia, 1, 2)}">$0.00</div>
+        </div>
+    </div>
+
+    <!-- Botón de cierre (solo si no está cerrado) -->
+    <div class="sd-form-actions sd-fade sd-fade--4" th:unless="${reporte.cierreRealizado}">
+        <form th:action="@{/cierrez/cerrar}" method="post"
+              onsubmit="return confirm('¿Estás seguro de cerrar el día? No se podrán registrar más ventas hasta mañana.');">
+            <button type="submit" class="sd-btn sd-btn--danger sd-btn--full" style="font-size:1.1rem;padding:0.85rem 2rem;">
+                <i class="bi bi-lock-fill"></i> Cerrar d&iacute;a y cuadrar caja
+            </button>
+        </form>
+        <p class="sd-text-muted" style="text-align:center;font-size:0.8rem;margin-top:0.75rem;">
+            <i class="bi bi-exclamation-triangle"></i>
+            Una vez cerrado, no se podr&aacute;n registrar m&aacute;s ventas en el d&iacute;a de hoy.
+        </p>
+    </div>
+
+    <!-- Info post-cierre -->
+    <div class="sd-list-card sd-fade sd-fade--4" th:if="${reporte.cierreRealizado}">
+        <div class="sd-list-card-glow"></div>
+        <div class="sd-list-card-header">
+            <div class="sd-list-card-title">
+                <i class="bi bi-check-circle sd-text-success"></i>
+                <span>D&iacute;a cerrado correctamente</span>
+            </div>
+        </div>
+        <div class="sd-list-card-body" style="padding:1.25rem;">
+            <p class="sd-text-secondary" style="font-size:0.9rem;margin:0;">
+                El cierre Z se ha registrado exitosamente.
+                Ya no es posible registrar nuevas ventas para el d&iacute;a de hoy.
+                Los totales reflejados arriba son los valores finales del cuadre de caja.
+            </p>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var els = document.querySelectorAll('.sd-fade');
+            els.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 100 * i);
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

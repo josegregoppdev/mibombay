@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mi Bombay - Sistema de Gestión para Restaurantes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:opsz,wght@14..32,300;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="landing-page">
+
+    <div class="bg-grain"></div>
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+
+    <!-- HERO -->
+    <section class="landing-hero">
+        <div class="landing-container">
+            <div class="brand">Mi Bombay</div>
+            <div class="tagline">Sistema de Gesti&oacute;n para Restaurantes</div>
+            <div class="landing-desc">
+                Control de ventas, inventario, recetas y m&aacute;s &mdash;
+                todo en un solo lugar.
+            </div>
+
+            <div class="landing-actions">
+                <a href="/login" class="landing-btn landing-btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    Ingresar
+                </a>
+                <a href="/superadmin/login" class="landing-btn landing-btn-secondary">
+                    <span>Superadmin</span>
+                    <span class="badge">DEV</span>
+                </a>
+            </div>
+            <div class="landing-registro">
+                <span>&iquest;Nuevo? </span>
+                <a href="/registro-empresa">Crear tu empresa</a>
+            </div>
+
+            <!-- Demo credentials card -->
+            <div class="demo-card">
+                <div class="demo-card-header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span>Pruébalo ahora</span>
+                </div>
+                <div class="demo-card-body">
+                    <div class="demo-field">
+                        <span class="demo-label">Código Empresa</span>
+                        <code>1</code>
+                    </div>
+                    <div class="demo-field">
+                        <span class="demo-label">Usuario</span>
+                        <code>demoadmin</code>
+                    </div>
+                    <div class="demo-field">
+                        <span class="demo-label">Contraseña</span>
+                        <code>demoadmin123</code>
+                    </div>
+                </div>
+                <a href="/login" class="demo-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    Ingresar a la demo
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="landing-section">
+        <div class="landing-section-header">
+            <h2>Todo lo que tu restaurante necesita</h2>
+            <p>Un sistema completo, simple y profesional.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                </div>
+                <h3>Punto de Venta</h3>
+                <p>Caja r&aacute;pida con carrito, selecci&oacute;n de pago y m&uacute;ltiples formas de cobro.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                </div>
+                <h3>Inventario</h3>
+                <p>Control de stock con alertas, recetas que calculan ingredientes autom&aacute;ticamente.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                </div>
+                <h3>Dashboard</h3>
+                <p>Ventas del d&iacute;a, semana y mes. Top 10 productos y alertas de stock cr&iacute;tico.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </div>
+                <h3>Compras</h3>
+                <p>Registro de compras con factura, actualizaci&oacute;n autom&aacute;tica de stock.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <h3>Cierre Z</h3>
+                <p>Cierres diarios con totales por m&eacute;todo de pago. Bloqueo autom&aacute;tico de ventas.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                </div>
+                <h3>Multi-empresa</h3>
+                <p>Varias sucursales o restaurantes, un solo sistema. Acceso por rol y empresa.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- EMPRESAS -->
+    <section class="landing-section" th:if="${not #lists.isEmpty(empresas)}">
+        <div class="landing-section-header">
+            <h2>Empresas que conf&iacute;an en nosotros</h2>
+            <p th:text="${#lists.size(empresas) + ' empresa(s) activa(s)'}"></p>
+        </div>
+        <div class="empresas-grid">
+            <div class="empresa-card" th:each="emp : ${empresas}">
+                <div class="empresa-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+                </div>
+                <div class="empresa-nombre" th:text="${emp.nombre}">Empresa</div>
+                <div class="empresa-encargado" th:text="${emp.nombreEncargado ?: '—'}"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <div class="landing-footer">
+        <div class="landing-footer-inner">
+            <span>&copy; 2026 Mi Bombay</span>
+            <a href="#">T&eacute;rminos</a>
+            <a href="#">Privacidad</a>
+        </div>
+    </div>
+
+</body>
+</html>

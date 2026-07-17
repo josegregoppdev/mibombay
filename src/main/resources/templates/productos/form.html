@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title" th:text="${producto.id != null} ? 'Editar Producto' : 'Nuevo Producto'"></h1>
+            <p class="sd-page-desc" th:text="${producto.id != null} ? 'Modifica los datos del producto' : 'Registra un nuevo producto en el cat&aacute;logo'"></p>
+            <div class="sd-title-accent"></div>
+        </div>
+    </div>
+
+    <div class="sd-form-card sd-fade sd-fade--2">
+        <div class="sd-form-card-glow"></div>
+        <div class="sd-form-card-header">
+            <div class="sd-form-card-icon">
+                <i class="bi bi-box-seam"></i>
+            </div>
+            <div>
+                <h3>Datos del producto</h3>
+                <p>Los campos marcados con * son obligatorios</p>
+            </div>
+        </div>
+
+        <form th:action="${producto.id != null} ? @{/productos/{id}/actualizar(id=${producto.id})} : @{/productos/guardar}"
+              method="post" th:object="${producto}">
+
+            <div class="sd-form-grid">
+                <div class="sd-form-field sd-fade sd-fade--3">
+                    <label for="nombre" class="sd-form-label">
+                        <i class="bi bi-tag"></i> Nombre *
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="text" id="nombre" th:field="*{nombre}" class="sd-form-input" required placeholder="Ej: Hamburguesa Cl&aacute;sica">
+                    </div>
+                    <div th:if="${#fields.hasErrors('nombre')}" class="sd-form-error" th:errors="*{nombre}"></div>
+                </div>
+
+                <div class="sd-form-field sd-form-field--full sd-fade sd-fade--4">
+                    <label for="descripcion" class="sd-form-label">
+                        <i class="bi bi-card-text"></i> Descripci&oacute;n
+                    </label>
+                    <div class="sd-input-wrap">
+                        <textarea id="descripcion" th:field="*{descripcion}" class="sd-form-input sd-form-textarea" placeholder="Descripci&oacute;n opcional" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--5">
+                    <label for="precioVenta" class="sd-form-label">
+                        <i class="bi bi-currency-dollar"></i> Precio de venta *
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="number" id="precioVenta" th:field="*{precioVenta}" class="sd-form-input" step="0.01" min="0" required placeholder="0.00">
+                    </div>
+                    <div th:if="${#fields.hasErrors('precioVenta')}" class="sd-form-error" th:errors="*{precioVenta}"></div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--6">
+                    <label class="sd-form-label">
+                        <i class="bi bi-egg-fried"></i> Receta
+                    </label>
+                    <div class="sd-input-wrap">
+                        <div class="sd-toggle">
+                            <input type="checkbox" id="tieneReceta" th:field="*{tieneReceta}" />
+                            <label for="tieneReceta" class="sd-toggle-slider"></label>
+                        </div>
+                        <span class="sd-toggle-text" id="recetaText">Producto simple</span>
+                    </div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--7" id="precioCompraField">
+                    <label for="precioCompra" class="sd-form-label">
+                        <i class="bi bi-cash"></i> Precio de compra
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="number" id="precioCompra" th:field="*{precioCompra}" class="sd-form-input" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                </div>
+            </div>
+
+            <div class="sd-form-divider"></div>
+
+            <div class="sd-form-actions sd-fade sd-fade--8">
+                <button type="submit" class="sd-btn">
+                    <i class="bi bi-check-lg"></i>
+                    <span th:text="${producto.id != null} ? 'Actualizar producto' : 'Crear producto'"></span>
+                </button>
+                <a th:href="@{/productos}" class="sd-btn sd-btn--outline">
+                    <i class="bi bi-x-lg"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var els = document.querySelectorAll('.sd-fade');
+            els.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 80 * i);
+            });
+
+            var recetaCheck = document.getElementById('tieneReceta');
+            var precioCompraField = document.getElementById('precioCompraField');
+            var recetaText = document.getElementById('recetaText');
+            function toggleReceta() {
+                var tieneReceta = recetaCheck.checked;
+                precioCompraField.style.display = tieneReceta ? 'none' : '';
+                recetaText.textContent = tieneReceta ? 'Producto con receta' : 'Producto simple';
+            }
+            recetaCheck.addEventListener('change', toggleReceta);
+            toggleReceta();
+        });
+    </script>
+</div>
+</body>
+</html>

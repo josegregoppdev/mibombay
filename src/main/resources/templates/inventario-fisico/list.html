@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title">Inventario F&iacute;sico</h1>
+            <p class="sd-page-desc">Carga y verificaci&oacute;n diaria del stock f&iacute;sico</p>
+            <div class="sd-title-accent"></div>
+        </div>
+        <div class="sd-page-actions">
+            <a th:if="${!existeConfirmadoHoy}"
+               th:href="@{/inventario-fisico/nuevo}"
+               class="sd-btn">
+                <i class="bi bi-clipboard-plus"></i> Nuevo inventario
+            </a>
+            <span th:if="${existeConfirmadoHoy}" class="sd-btn sd-btn--outline"
+                  style="opacity:0.5;cursor:not-allowed;" title="Ya se carg&oacute; hoy">
+                <i class="bi bi-check-circle"></i> Ya cargado hoy
+            </span>
+        </div>
+    </div>
+
+    <div th:if="${borradorHoy != null}" class="sd-alert sd-alert--success sd-fade sd-fade--2"
+         style="display:flex;justify-content:space-between;align-items:center;">
+        <span><i class="bi bi-clock-history"></i> Tienes un borrador en curso de hoy</span>
+        <a th:href="@{/inventario-fisico/{id}/editar(id=${borradorHoy.id})}" class="sd-btn sd-btn--sm">
+            <i class="bi bi-pencil"></i> Retomar
+        </a>
+    </div>
+
+    <div class="sd-section-card sd-fade sd-fade--2" style="margin-top:1rem;">
+        <div th:if="${inventarios.isEmpty()}" class="sd-empty">
+            <div class="sd-empty-icon"><i class="bi bi-clipboard-data"></i></div>
+            <h3>No hay inventarios f&iacute;sicos</h3>
+            <p>Carga el primer inventario f&iacute;sico del d&iacute;a</p>
+        </div>
+
+        <div th:if="${!inventarios.isEmpty()}" class="sa-table-wrapper">
+            <table class="sa-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Responsable</th>
+                        <th>Estado</th>
+                        <th class="sa-cell-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="inv : ${inventarios}" class="sd-table-row">
+                        <td class="sa-cell-date" th:text="${#temporals.format(inv.fecha, 'dd/MM/yyyy')}"></td>
+                        <td th:text="${usuariosNombres[inv.usuarioId]}"></td>
+                        <td>
+                            <span th:if="${inv.estado.name() == 'BORRADOR'}" class="sa-badge sa-badge--users">
+                                <span class="sa-dot sa-dot--green"></span> Borrador
+                            </span>
+                            <span th:if="${inv.estado.name() == 'CONFIRMADO'}" class="sa-badge sa-badge--active">
+                                <i class="bi bi-check-lg"></i> Confirmado
+                            </span>
+                        </td>
+                        <td class="sa-cell-center">
+                            <div class="sa-actions">
+                                <a th:href="@{/inventario-fisico/{id}(id=${inv.id})}"
+                                   class="sa-btn-icon" title="Ver detalle">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a th:if="${inv.estado.name() == 'CONFIRMADO'}"
+                                   th:href="@{/inventario-fisico/{id}/excel(id=${inv.id})}"
+                                   class="sa-btn-icon" title="Exportar Excel">
+                                    <i class="bi bi-file-earmark-spreadsheet"></i>
+                                </a>
+                                <a th:if="${inv.estado.name() == 'BORRADOR'}"
+                                   th:href="@{/inventario-fisico/{id}/editar(id=${inv.id})}"
+                                   class="sa-btn-icon sa-btn-icon--edit" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

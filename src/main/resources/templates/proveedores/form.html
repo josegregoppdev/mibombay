@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title" th:text="${proveedor.id != null} ? 'Editar Proveedor' : 'Nuevo Proveedor'"></h1>
+            <p class="sd-page-desc" th:text="${proveedor.id != null} ? 'Modifica los datos del proveedor' : 'Registra un nuevo proveedor en el sistema'"></p>
+            <div class="sd-title-accent"></div>
+        </div>
+    </div>
+
+    <div class="sd-form-card sd-fade sd-fade--2">
+        <div class="sd-form-card-glow"></div>
+        <div class="sd-form-card-header">
+            <div class="sd-form-card-icon">
+                <i class="bi bi-truck"></i>
+            </div>
+            <div>
+                <h3 th:text="${proveedor.id != null} ? 'Informaci&oacute;n del proveedor' : 'Datos del nuevo proveedor'"></h3>
+                <p>Los campos marcados con * son obligatorios</p>
+            </div>
+        </div>
+
+        <form th:action="${proveedor.id != null} ? @{/proveedores/{id}/actualizar(id=${proveedor.id})} : @{/proveedores/guardar}"
+              method="post" th:object="${proveedor}">
+
+            <div class="sd-form-grid">
+                <div class="sd-form-field sd-fade sd-fade--3">
+                    <label for="razonSocial" class="sd-form-label">
+                        <i class="bi bi-building"></i> Raz&oacute;n Social *
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="text" id="razonSocial" th:field="*{razonSocial}" class="sd-form-input" required placeholder="Ej: Distribuidora de Alimentos S.A.S">
+                    </div>
+                    <div th:if="${#fields.hasErrors('razonSocial')}" class="sd-form-error" th:errors="*{razonSocial}"></div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--4">
+                    <label for="contacto" class="sd-form-label">
+                        <i class="bi bi-person"></i> Nombre de contacto
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="text" id="contacto" th:field="*{contacto}" class="sd-form-input" placeholder="Ej: Carlos M&eacute;ndez">
+                    </div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--5">
+                    <label for="telefono" class="sd-form-label">
+                        <i class="bi bi-telephone"></i> Tel&eacute;fono
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="text" id="telefono" th:field="*{telefono}" class="sd-form-input" placeholder="Ej: +57 300 123 4567">
+                    </div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--6">
+                    <label for="correo" class="sd-form-label">
+                        <i class="bi bi-envelope"></i> Correo electr&oacute;nico
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="email" id="correo" th:field="*{correo}" class="sd-form-input" placeholder="Ej: contacto@distribuidora.com">
+                    </div>
+                    <div th:if="${#fields.hasErrors('correo')}" class="sd-form-error" th:errors="*{correo}"></div>
+                </div>
+
+                <div class="sd-form-field sd-form-field--full sd-fade sd-fade--7">
+                    <label for="direccion" class="sd-form-label">
+                        <i class="bi bi-geo-alt"></i> Direcci&oacute;n
+                    </label>
+                    <div class="sd-input-wrap">
+                        <textarea id="direccion" th:field="*{direccion}" class="sd-form-input sd-form-textarea" placeholder="Direcci&oacute;n del proveedor" rows="2"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sd-form-divider"></div>
+
+            <div class="sd-form-actions sd-fade sd-fade--8">
+                <button type="submit" class="sd-btn">
+                    <i class="bi bi-check-lg"></i>
+                    <span th:text="${proveedor.id != null} ? 'Actualizar proveedor' : 'Crear proveedor'"></span>
+                </button>
+                <a th:href="@{/proveedores}" class="sd-btn sd-btn--outline">
+                    <i class="bi bi-x-lg"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var els = document.querySelectorAll('.sd-fade');
+            els.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 80 * i);
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

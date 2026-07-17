@@ -1,0 +1,79 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# === Secrets / Config local ===
+application-dev.properties
+application-prod.properties
+application-local.properties
+.env
+.env.*
+
+# === Logs ===
+*.log
+logs/
+
+# === OS ===
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# === Editors / IDE backup ===
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+*.orig
+*.rej
+
+# === Java / Maven extras ===
+*.class
+*.jar
+*.war
+hs_err_pid*.log
+replay_pid*.log
+dependency-reduced-pom.xml
+
+# === Build outputs extras ===
+out/
+bin/
+
+# === Notas de trabajo personal ===
+*.txt
+!AGENTS.md
+
+# === Skills locales (opencode) ===
+.agents/
+skills-lock.json
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/

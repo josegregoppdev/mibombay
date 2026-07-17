@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title">Reporte de Consumo</h1>
+            <p class="sd-page-desc">Consumo, merma y desperdicio de ingredientes y productos por per&iacute;odo</p>
+            <div class="sd-title-accent"></div>
+        </div>
+    </div>
+
+    <form th:action="@{/reportes/consumo}" method="get"
+          class="sd-fade sd-fade--2"
+          style="display:flex;gap:1rem;align-items:end;flex-wrap:wrap;margin-bottom:1.5rem;">
+        <div>
+            <label class="sd-filter-label">Desde</label>
+            <input type="date" th:name="desde" th:value="${desde}"
+                   class="sd-filter-input" />
+        </div>
+        <div>
+            <label class="sd-filter-label">Hasta</label>
+            <input type="date" th:name="hasta" th:value="${hasta}"
+                   class="sd-filter-input" />
+        </div>
+        <button type="submit" class="sd-btn">
+            <i class="bi bi-search"></i> Consultar
+        </button>
+    </form>
+
+    <!-- Resumen global de Costo Comida -->
+    <div class="sd-section-card sd-fade sd-fade--3" style="margin-bottom:1.5rem;" th:if="${resumen.diasConDatos > 0}">
+        <div class="sd-list-card-header">
+            <span class="sd-list-card-title">
+                <i class="bi bi-pie-chart"></i> Resumen Costo Comida
+            </span>
+            <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                <span class="sd-muted" th:text="${#temporals.format(desde, 'dd/MM/yyyy')} + ' — ' + ${#temporals.format(hasta, 'dd/MM/yyyy')}"></span>
+                <span th:if="${resumen.esPromedio}" class="sd-muted" style="font-size:0.75rem;background:var(--content-surface-2, #19191f);padding:0.2rem 0.5rem;border-radius:4px;">
+                    <i class="bi bi-calculator"></i> Promedio del per&iacute;odo
+                </span>
+                <span class="sd-text-muted" style="font-size:0.75rem;background:var(--content-surface-2, #19191f);padding:0.2rem 0.5rem;border-radius:4px;" th:text="${resumen.diasConDatos} + ' d\u00eda(s)'">
+                </span>
+            </div>
+        </div>
+
+        <!-- Tres Gauges -->
+        <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:1.5rem;padding:0 0.25rem;">
+            <div class="sd-fc-gauge" style="flex:1;min-width:200px;">
+                <div class="sd-fc-gauge-value"
+                     th:classappend="${resumen.foodCostPorcentaje < 28} ? 'sd-text-success' : (${resumen.foodCostPorcentaje <= 35} ? 'sd-text-info' : (${resumen.foodCostPorcentaje <= 45} ? 'sd-text-warning' : 'sd-text-danger'))"
+                     th:text="${#numbers.formatDecimal(resumen.foodCostPorcentaje, 1, 2)} + '%'">0%</div>
+                <div class="sd-fc-gauge-label">Costo Comida <th:block th:text="${resumen.esPromedio} ? 'Promedio' : 'Global'"></th:block></div>
+                <div class="sd-fc-gauge-bar">
+                    <div class="sd-fc-gauge-fill"
+                         th:style="'width:' + ${resumen.foodCostPorcentaje} + '%'"
+                         th:classappend="${resumen.foodCostPorcentaje < 28} ? 'sd-fc-fill--bajo' : (${resumen.foodCostPorcentaje <= 35} ? 'sd-fc-fill--ok' : (${resumen.foodCostPorcentaje <= 45} ? 'sd-fc-fill--alto' : 'sd-fc-fill--critico'))">
+                    </div>
+                </div>
+                <div class="sd-fc-gauge-legend">
+                    <span class="sd-fc-legend-item sd-fc-bajo">BAJO</span>
+                    <span class="sd-fc-legend-item sd-fc-ok">OK</span>
+                    <span class="sd-fc-legend-item sd-fc-alto">ALTO</span>
+                    <span class="sd-fc-legend-item sd-fc-critico">CRIT</span>
+                </div>
+            </div>
+            <div class="sd-fc-gauge" style="flex:1;min-width:200px;">
+                <div class="sd-fc-gauge-value"
+                     th:classappend="${resumen.costoRealPorcentaje < 28} ? 'sd-text-success' : (${resumen.costoRealPorcentaje <= 35} ? 'sd-text-info' : (${resumen.costoRealPorcentaje <= 45} ? 'sd-text-warning' : 'sd-text-danger'))"
+                     th:text="${#numbers.formatDecimal(resumen.costoRealPorcentaje, 1, 2)} + '%'">0%</div>
+                <div class="sd-fc-gauge-label">Costo Real</div>
+                <div class="sd-fc-gauge-bar">
+                    <div class="sd-fc-gauge-fill"
+                         th:style="'width:' + ${resumen.costoRealPorcentaje} + '%'"
+                         th:classappend="${resumen.costoRealPorcentaje < 28} ? 'sd-fc-fill--bajo' : (${resumen.costoRealPorcentaje <= 35} ? 'sd-fc-fill--ok' : (${resumen.costoRealPorcentaje <= 45} ? 'sd-fc-fill--alto' : 'sd-fc-fill--critico'))">
+                    </div>
+                </div>
+                <div class="sd-fc-gauge-legend">
+                    <span class="sd-fc-legend-item sd-fc-bajo">BAJO</span>
+                    <span class="sd-fc-legend-item sd-fc-ok">OK</span>
+                    <span class="sd-fc-legend-item sd-fc-alto">ALTO</span>
+                    <span class="sd-fc-legend-item sd-fc-critico">CRIT</span>
+                </div>
+            </div>
+            <div class="sd-fc-gauge" style="flex:1;min-width:200px;">
+                <div class="sd-fc-gauge-value"
+                     th:classappend="${resumen.foodCostContablePorcentaje < 28} ? 'sd-text-success' : (${resumen.foodCostContablePorcentaje <= 35} ? 'sd-text-info' : (${resumen.foodCostContablePorcentaje <= 45} ? 'sd-text-warning' : 'sd-text-danger'))"
+                     th:text="${#numbers.formatDecimal(resumen.foodCostContablePorcentaje, 1, 2)} + '%'">0%</div>
+                <div class="sd-fc-gauge-label">Costo Comida Contable</div>
+                <div class="sd-fc-gauge-bar">
+                    <div class="sd-fc-gauge-fill"
+                         th:style="'width:' + ${resumen.foodCostContablePorcentaje} + '%'"
+                         th:classappend="${resumen.foodCostContablePorcentaje < 28} ? 'sd-fc-fill--bajo' : (${resumen.foodCostContablePorcentaje <= 35} ? 'sd-fc-fill--ok' : (${resumen.foodCostContablePorcentaje <= 45} ? 'sd-fc-fill--alto' : 'sd-fc-fill--critico'))">
+                    </div>
+                </div>
+                <div class="sd-fc-gauge-legend">
+                    <span class="sd-fc-legend-item sd-fc-bajo">BAJO</span>
+                    <span class="sd-fc-legend-item sd-fc-ok">OK</span>
+                    <span class="sd-fc-legend-item sd-fc-alto">ALTO</span>
+                    <span class="sd-fc-legend-item sd-fc-critico">CRIT</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats cards -->
+        <div class="sd-stats-grid" style="margin-bottom:1.5rem;">
+            <div class="sd-stat-card">
+                <div class="sd-stat-icon sd-stat-icon--primary">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <div class="sd-stat-body">
+                    <span class="sd-stat-value" th:text="'$' + ${#numbers.formatDecimal(resumen.ventasTotales, 0, 2)}">$0</span>
+                    <span class="sd-stat-label">Ventas Totales</span>
+                </div>
+            </div>
+            <div class="sd-stat-card">
+                <div class="sd-stat-icon sd-stat-icon--warning">
+                    <i class="bi bi-basket"></i>
+                </div>
+                <div class="sd-stat-body">
+                    <span class="sd-stat-value" th:text="'$' + ${#numbers.formatDecimal(resumen.costoIngredientesVendidos, 0, 2)}">$0</span>
+                    <span class="sd-stat-label">Costo Ingredientes</span>
+                </div>
+            </div>
+            <div class="sd-stat-card">
+                <div class="sd-stat-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;">
+                    <i class="bi bi-trash"></i>
+                </div>
+                <div class="sd-stat-body">
+                    <span class="sd-stat-value sd-text-warning" th:text="'$' + ${#numbers.formatDecimal(resumen.mermaValor, 0, 2)} + ' (' + ${#numbers.formatDecimal(resumen.mermaPorcentaje, 1, 2)} + '%)'">$0</span>
+                    <span class="sd-stat-label">Merma</span>
+                </div>
+            </div>
+            <div class="sd-stat-card">
+                <div class="sd-stat-icon" style="background:rgba(239,68,68,0.1);color:#ef4444;">
+                    <i class="bi bi-x-circle"></i>
+                </div>
+                <div class="sd-stat-body">
+                    <span class="sd-stat-value sd-text-warning" th:text="'$' + ${#numbers.formatDecimal(resumen.desperdicioValor, 0, 2)} + ' (' + ${#numbers.formatDecimal(resumen.desperdicioPorcentaje, 1, 2)} + '%)'">$0</span>
+                    <span class="sd-stat-label">Desperdicio</span>
+                </div>
+            </div>
+            <div class="sd-stat-card">
+                <div class="sd-stat-icon" style="background:rgba(139,92,246,0.1);color:#a78bfa;">
+                    <i class="bi bi-arrow-left-right"></i>
+                </div>
+                <div class="sd-stat-body">
+                    <span class="sd-stat-value"
+                     th:classappend="${resumen.diferenciaPorcentaje.compareTo(0) >= 0} ? 'sd-text-danger' : 'sd-text-success'"
+                     th:text="'$' + ${#numbers.formatDecimal(resumen.diferenciaValor, 0, 2)} + ' (' + ${#numbers.formatDecimal(resumen.diferenciaPorcentaje, 1, 2)} + '%)'">$0</span>
+                    <span class="sd-stat-label">Diferencia</span>
+                </div>
+            </div>
+            <div class="sd-stat-card">
+                <div class="sd-stat-icon sd-stat-icon--info">
+                    <i class="bi bi-calculator"></i>
+                </div>
+                <div class="sd-stat-body">
+                    <span class="sd-stat-value sd-text-accent" th:text="'$' + ${#numbers.formatDecimal(resumen.costoRealValor, 0, 2)} + ' (' + ${#numbers.formatDecimal(resumen.costoRealPorcentaje, 1, 2)} + '%)'">$0</span>
+                    <span class="sd-stat-label">Costo Real</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="sd-fc-resumen-footer">
+            <div style="font-size:0.85rem;">
+                <span class="sd-text-muted">Costo Real:</span>
+                <strong class="sd-text-accent" th:text="${#numbers.formatDecimal(resumen.costoRealPorcentaje, 1, 2)} + '%'"></strong>
+                &nbsp;&nbsp;
+                <span class="sd-text-muted">| Costo Contable:</span>
+                <strong th:classappend="${resumen.foodCostContablePorcentaje < 28} ? 'sd-text-success' : (${resumen.foodCostContablePorcentaje <= 35} ? 'sd-text-info' : (${resumen.foodCostContablePorcentaje <= 45} ? 'sd-text-warning' : 'sd-text-danger'))"
+                        th:text="${#numbers.formatDecimal(resumen.foodCostContablePorcentaje, 1, 2)} + '%'"></strong>
+                &nbsp;&nbsp;
+                <span class="sd-text-muted">| Merma:</span>
+                <strong class="sd-text-warning" th:text="'$' + ${#numbers.formatDecimal(resumen.mermaValor, 1, 2)} + ' (' + ${#numbers.formatDecimal(resumen.mermaPorcentaje, 1, 2)} + '%)'"></strong>
+                &nbsp;&nbsp;
+                <span class="sd-text-muted">Desperdicio:</span>
+                <strong class="sd-text-warning" th:text="'$' + ${#numbers.formatDecimal(resumen.desperdicioValor, 1, 2)} + ' (' + ${#numbers.formatDecimal(resumen.desperdicioPorcentaje, 1, 2)} + '%)'"></strong>
+                &nbsp;&nbsp;
+                <span class="sd-text-muted">| Diferencia:</span>
+                <strong th:classappend="${resumen.diferenciaPorcentaje.compareTo(0) >= 0} ? 'sd-text-danger' : 'sd-text-success'"
+                        th:text="'$' + ${#numbers.formatDecimal(resumen.diferenciaValor, 1, 2)} + ' (' + ${#numbers.formatDecimal(resumen.diferenciaPorcentaje, 1, 2)} + '%)'"></strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mensaje si no hay datos guardados -->
+    <div class="sd-section-card sd-fade sd-fade--3" style="margin-bottom:1.5rem;" th:if="${resumen.diasConDatos == 0}">
+        <div class="sd-list-card-header">
+            <span class="sd-list-card-title">
+                <i class="bi bi-pie-chart"></i> Resumen Costo Comida
+            </span>
+        </div>
+        <div class="sd-text-muted" style="text-align:center;font-size:0.85rem;">
+            <i class="bi bi-info-circle" style="margin-right:0.35rem;"></i>
+            No hay costos comida guardados para este per&iacute;odo.
+            Guarda los costos desde <a th:href="@{/admin/food-cost}" class="sd-text-accent">Costo Comida</a> y vuelve a consultar.
+        </div>
+    </div>
+
+    <div class="sd-section-card sd-fade sd-fade--4">
+        <div class="sd-list-card-header">
+            <span class="sd-list-card-title">
+                <i class="bi bi-bar-chart-line"></i> Consumo del per&iacute;odo
+            </span>
+            <div style="display:flex;align-items:center;gap:0.75rem;">
+                <span class="sd-muted" th:text="${#lists.size(reporte)} + ' items'"></span>
+                <a th:href="@{/reportes/consumo/excel(desde=${desde}, hasta=${hasta})}" class="sd-btn sd-btn--sm sd-btn--outline">
+                    <i class="bi bi-file-earmark-spreadsheet"></i> Excel
+                </a>
+            </div>
+        </div>
+        <div class="sa-table-wrapper">
+            <table class="sa-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Tipo</th>
+                        <th>Unidad</th>
+                        <th class="sa-cell-center">Stock <span th:text="${#temporals.format(desde, 'dd/MM')}"></span></th>
+                        <th class="sa-cell-center">Compras</th>
+                        <th class="sa-cell-center">Consumo</th>
+                        <th class="sa-cell-center">Merma</th>
+                        <th class="sa-cell-center">$ Merma</th>
+                        <th class="sa-cell-center">Desperdicio</th>
+                        <th class="sa-cell-center">$ Desperdicio</th>
+                        <th class="sa-cell-center">Dif. Inexplicada</th>
+                        <th class="sa-cell-center">$ Diferencia</th>
+                        <th class="sa-cell-center">Stock <span th:text="${#temporals.format(hasta, 'dd/MM')}"></span></th>
+                        <th class="sa-cell-center">Stock Real</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="r : ${reporte}" class="sd-table-row">
+                        <td th:text="${r.itemNombre}"></td>
+                        <td>
+                            <span class="sd-item-tipo-badge"
+                                  th:classappend="${r.itemTipo == 'INGREDIENTE'} ? 'sd-item-tipo-badge--ing' : 'sd-item-tipo-badge--prod'"
+                                  th:text="${r.itemTipo}"></span>
+                        </td>
+                        <td><span class="sd-unit-badge" th:text="${r.unidadMedida}"></span></td>
+                        <td class="sa-cell-center sd-stock-value" th:text="${r.stockDesde}"></td>
+                        <td class="sa-cell-center">
+                            <span th:if="${r.compras != null and r.compras.compareTo(0) > 0}"
+                                  class="sd-stock-positive" th:text="${r.compras}"></span>
+                            <span th:if="${r.compras == null or r.compras.compareTo(0) == 0}"
+                                  class="sd-muted" th:text="'0'"></span>
+                        </td>
+                        <td class="sa-cell-center">
+                            <span th:if="${r.consumo != null and r.consumo.compareTo(0) > 0}"
+                                  class="sd-stock-negative" th:text="${r.consumo}"></span>
+                            <span th:if="${r.consumo == null or r.consumo.compareTo(0) == 0}"
+                                  class="sd-muted" th:text="'0'"></span>
+                        </td>
+                        <td class="sa-cell-center">
+                            <span th:if="${r.merma != null and r.merma.compareTo(0) > 0}"
+                                  class="sd-stock-warning" th:text="${r.merma}"></span>
+                            <span th:if="${r.merma == null or r.merma.compareTo(0) == 0}"
+                                  class="sd-muted" th:text="'0'"></span>
+                        </td>
+                        <td class="sa-cell-center sd-stock-value">
+                            <span th:if="${r.costoMerma != null and r.costoMerma.compareTo(0) > 0}"
+                                  class="sd-cost-value" th:text="'$' + ${#numbers.formatDecimal(r.costoMerma, 0, 2)}"></span>
+                            <span th:if="${r.costoMerma == null or r.costoMerma.compareTo(0) == 0}"
+                                  class="sd-muted">$0.00</span>
+                        </td>
+                        <td class="sa-cell-center">
+                            <span th:if="${r.desperdicio != null and r.desperdicio.compareTo(0) > 0}"
+                                  class="sd-stock-negative" th:text="${r.desperdicio}"></span>
+                            <span th:if="${r.desperdicio == null or r.desperdicio.compareTo(0) == 0}"
+                                  class="sd-muted" th:text="'0'"></span>
+                        </td>
+                        <td class="sa-cell-center sd-stock-value">
+                            <span th:if="${r.costoDesperdicio != null and r.costoDesperdicio.compareTo(0) > 0}"
+                                  class="sd-cost-value" th:text="'$' + ${#numbers.formatDecimal(r.costoDesperdicio, 0, 2)}"></span>
+                            <span th:if="${r.costoDesperdicio == null or r.costoDesperdicio.compareTo(0) == 0}"
+                                  class="sd-muted">$0.00</span>
+                        </td>
+                        <td class="sa-cell-center">
+                            <span th:if="${r.diferencia != null and r.diferencia.compareTo(0) > 0}"
+                                  class="sd-stock-positive" th:text="'+' + ${r.diferencia}"></span>
+                            <span th:if="${r.diferencia != null and r.diferencia.compareTo(0) < 0}"
+                                  class="sd-stock-negative" th:text="${r.diferencia}"></span>
+                            <span th:if="${r.diferencia == null or r.diferencia.compareTo(0) == 0}"
+                                  class="sd-muted" th:text="'0'"></span>
+                        </td>
+                        <td class="sa-cell-center sd-stock-value">
+                            <span th:if="${r.costoDiferencia != null and r.costoDiferencia.compareTo(0) > 0}"
+                                  class="sd-cost-value" th:text="'$' + ${#numbers.formatDecimal(r.costoDiferencia, 0, 2)}"></span>
+                            <span th:if="${r.costoDiferencia == null or r.costoDiferencia.compareTo(0) == 0}"
+                                  class="sd-muted">$0.00</span>
+                        </td>
+                        <td class="sa-cell-center sd-stock-value" th:text="${r.stockHasta}"></td>
+                        <td class="sa-cell-center sd-stock-value">
+                            <span th:if="${r.stockReal != null}" th:text="${r.stockReal}"></span>
+                            <span th:if="${r.stockReal == null}" class="sd-muted">—</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+.sd-stock-warning { color:#b45309; font-weight:600; }
+.sd-cost-value { color:#7c3aed; font-weight:600; font-size:0.85rem; }
+.sa-table { min-width:1300px; }
+</style>
+</body>
+</html>

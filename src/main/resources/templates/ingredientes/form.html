@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title" th:text="${ingrediente.id != null} ? 'Editar Ingrediente' : 'Nuevo Ingrediente'"></h1>
+            <p class="sd-page-desc" th:text="${ingrediente.id != null} ? 'Modifica los datos del ingrediente' : 'Registra un nuevo ingrediente en el inventario'"></p>
+            <div class="sd-title-accent"></div>
+        </div>
+    </div>
+
+    <div class="sd-form-card sd-fade sd-fade--2">
+        <div class="sd-form-card-glow"></div>
+        <div class="sd-form-card-header">
+            <div class="sd-form-card-icon">
+                <i class="bi bi-box-seam"></i>
+            </div>
+            <div>
+                <h3 th:text="${ingrediente.id != null} ? 'Informaci&oacute;n del ingrediente' : 'Datos del nuevo ingrediente'"></h3>
+                <p>Los campos marcados con * son obligatorios</p>
+            </div>
+        </div>
+
+        <form th:action="${ingrediente.id != null} ? @{/ingredientes/{id}/actualizar(id=${ingrediente.id})} : @{/ingredientes/guardar}"
+              method="post" th:object="${ingrediente}">
+
+            <div class="sd-form-grid">
+                <div class="sd-form-field sd-fade sd-fade--3">
+                    <label for="nombre" class="sd-form-label">
+                        <i class="bi bi-tag"></i> Nombre *
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="text" id="nombre" th:field="*{nombre}" class="sd-form-input" required placeholder="Ej: Pan de hamburguesa">
+                    </div>
+                    <div th:if="${#fields.hasErrors('nombre')}" class="sd-form-error" th:errors="*{nombre}"></div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--4">
+                    <label for="unidadMedida" class="sd-form-label">
+                        <i class="bi bi-rulers"></i> Unidad de medida *
+                    </label>
+                    <div class="sd-input-wrap">
+                        <select id="unidadMedida" th:field="*{unidadMedida}" class="sd-form-input" required>
+                            <option value="">— Seleccione —</option>
+                            <option th:each="u : ${unidades}" th:value="${u}" th:text="${u}"></option>
+                        </select>
+                        <i class="sd-select-chevron bi bi-chevron-down"></i>
+                    </div>
+                    <div th:if="${#fields.hasErrors('unidadMedida')}" class="sd-form-error" th:errors="*{unidadMedida}"></div>
+                </div>
+
+                <div class="sd-form-field sd-form-field--full sd-fade sd-fade--5">
+                    <label for="descripcion" class="sd-form-label">
+                        <i class="bi bi-card-text"></i> Descripci&oacute;n
+                    </label>
+                    <div class="sd-input-wrap">
+                        <textarea id="descripcion" th:field="*{descripcion}" class="sd-form-input sd-form-textarea" placeholder="Descripci&oacute;n opcional del ingrediente" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--6">
+                    <label for="stockActual" class="sd-form-label">
+                        <i class="bi bi-cubes"></i> Stock actual
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="number" id="stockActual" th:field="*{stockActual}" class="sd-form-input" step="0.01" min="0" placeholder="0">
+                    </div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--7">
+                    <label for="stockMinimo" class="sd-form-label">
+                        <i class="bi bi-exclamation-triangle"></i> Stock m&iacute;nimo
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="number" id="stockMinimo" th:field="*{stockMinimo}" class="sd-form-input" step="0.01" min="0" placeholder="0">
+                    </div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--8">
+                    <label for="precioCompra" class="sd-form-label">
+                        <i class="bi bi-currency-dollar"></i> Precio de compra
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="number" id="precioCompra" th:field="*{precioCompra}" class="sd-form-input" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                </div>
+            </div>
+
+            <div class="sd-form-field sd-fade sd-fade--9" style="grid-column: 1 / -1;">
+                <label class="sd-form-label">
+                    <i class="bi bi-droplet"></i> Tipo de ingrediente
+                </label>
+                <th:block th:if="${ingrediente.id != null}">
+                    <input type="hidden" name="consumible" th:value="${ingrediente.consumible}" />
+                    <th:block th:if="${ingrediente.consumible}">
+                        <div style="margin-top:0.5rem;padding:0.5rem 0.75rem;background:rgba(212,168,83,0.08);border-radius:8px;border-left:3px solid var(--accent,#d4a853);">
+                            <span style="color:var(--accent,#d4a853);font-size:0.85rem;">
+                                <i class="bi bi-droplet"></i> Consumible
+                            </span>
+                            <span style="color:var(--content-text-secondary,#a09e9c);font-size:0.85rem;"> — gestionado por Consumo Indirecto (no modificable)</span>
+                        </div>
+                    </th:block>
+                    <th:block th:unless="${ingrediente.consumible}">
+                        <div style="margin-top:0.5rem;padding:0.5rem 0.75rem;background:rgba(255,255,255,0.03);border-radius:8px;border-left:3px solid var(--content-text-secondary,#a09e9c);">
+                            <span style="color:var(--content-text-secondary,#a09e9c);font-size:0.85rem;">
+                                <i class="bi bi-box-seam"></i> Para receta
+                            </span>
+                            <span style="color:var(--content-text-secondary,#a09e9c);font-size:0.85rem;"> — este campo se define al crear y no se puede modificar</span>
+                        </div>
+                    </th:block>
+                </th:block>
+                <th:block th:unless="${ingrediente.id != null}">
+                    <div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem;">
+                        <input type="checkbox" id="consumible" th:field="*{consumible}" style="width:18px;height:18px;accent-color:var(--accent,#d4a853);" />
+                        <label for="consumible" style="cursor:pointer;color:var(--content-text-secondary,#a09e9c);font-size:0.9rem;">
+                            Es consumible (aceite, sal, especias de uso general)
+                        </label>
+                    </div>
+                </th:block>
+                <small class="sd-muted" style="display:block;margin-top:0.4rem;">Los ingredientes consumibles no aparecen en el inventario diario. Se gestionan por per&iacute;odos semanales/mensuales desde Consumo Indirecto.</small>
+            </div>
+
+            <div class="sd-form-divider"></div>
+
+            <div class="sd-form-actions sd-fade sd-fade--9">
+                <button type="submit" class="sd-btn">
+                    <i class="bi bi-check-lg"></i>
+                    <span th:text="${ingrediente.id != null} ? 'Actualizar ingrediente' : 'Crear ingrediente'"></span>
+                </button>
+                <a th:href="@{/ingredientes}" class="sd-btn sd-btn--outline">
+                    <i class="bi bi-x-lg"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var els = document.querySelectorAll('.sd-fade');
+            els.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 80 * i);
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

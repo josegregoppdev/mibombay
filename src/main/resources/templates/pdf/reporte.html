@@ -1,0 +1,381 @@
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+<meta charset="UTF-8"/>
+<title th:text="${tipo == 'CUADRE_CAJA'} ? 'Cuadre de Caja' : (${tipo == 'CIERRE_Z'} ? 'Cierre Z' : 'Reporte X')">Reporte</title>
+<style>
+    @page {
+        size: A4;
+        margin: 1.5cm;
+    }
+    body {
+        font-family: 'DejaVu Sans', sans-serif;
+        font-size: 8.5pt;
+        color: #1a1a1a;
+        margin: 0;
+        padding: 0;
+        line-height: 1.3;
+    }
+    .header {
+        text-align: center;
+        margin-bottom: 10px;
+        border-bottom: 2px solid #c8a87c;
+        padding-bottom: 6px;
+    }
+    .header h1 {
+        font-size: 16pt;
+        margin: 0;
+        color: #1a1a1a;
+    }
+    .header p {
+        margin: 1px 0;
+        font-size: 8pt;
+        color: #555;
+    }
+    .header .empresa-row {
+        display: block;
+        margin-top: 4px;
+    }
+    .header .empresa-row span {
+        margin: 0 8px;
+        font-size: 8pt;
+        color: #555;
+    }
+    .title-section {
+        text-align: center;
+        margin: 8px 0;
+    }
+    .title-section h2 {
+        font-size: 12pt;
+        color: #c8a87c;
+        margin: 0;
+        letter-spacing: 2px;
+        text-transform: uppercase;}
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 6px;
+    }
+    tr {
+        page-break-inside: avoid;
+    }
+    th, td {
+        padding: 3px 6px;
+        text-align: left;
+        border: 1px solid #ccc;
+        font-size: 8pt;
+    }
+    th {
+        background-color: #f0ebe4;
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+    .label-cell {
+        font-weight: 600;
+        color: #333;
+    }
+    .value-cell {
+        text-align: right;
+        font-weight: 600;
+    }
+    .total-row td {
+        font-weight: 700;
+        font-size: 9pt;
+        border-top: 2px solid #c8a87c;
+        background-color: #f9f6f0;
+    }
+    .observ-box {
+        border: 1px solid #ccc;
+        padding: 6px;
+        margin-top: 6px;
+        font-size: 8pt;
+    }
+    .footer {
+        text-align: center;
+        font-size: 7pt;
+        color: #999;
+        margin-top: 12px;
+        border-top: 1px solid #ddd;
+        padding-top: 4px;
+    }
+    .badge-pendiente {
+        color: #b8860b;
+        font-weight: 700;
+    }
+    .badge-realizado {
+        color: #228b22;
+        font-weight: 700;
+    }
+    .info-box {
+        border: 1px dashed #c8a87c;
+        padding: 4px 8px;
+        margin: 6px 0;
+        font-size: 8pt;
+    }
+    .tipo-billete {
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+    .tipo-moneda {
+        font-weight: 600;
+        color: #555;
+    }
+    .header {
+        text-align: center;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #c8a87c;
+        padding-bottom: 12px;
+    }
+    .header h1 {
+        font-size: 18pt;
+        margin: 0 0 4px;
+        color: #1a1a1a;
+    }
+    .header p {
+        margin: 2px 0;
+        font-size: 9pt;
+        color: #555;
+    }
+    .header .empresa-row {
+        display: block;
+        margin-top: 6px;
+    }
+    .header .empresa-row span {
+        margin: 0 12px;
+        font-size: 9pt;
+        color: #555;
+    }
+    .title-section {
+        text-align: center;
+        margin: 16px 0;
+    }
+    .title-section h2 {
+        font-size: 14pt;
+        color: #c8a87c;
+        margin: 0;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 12px;
+    }
+    tr {
+        page-break-inside: avoid;
+    }
+    th, td {
+        padding: 6px 10px;
+        text-align: left;
+        border: 1px solid #ccc;
+        font-size: 9.5pt;
+    }
+    th {
+        background-color: #f0ebe4;
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+    .label-cell {
+        font-weight: 600;
+        color: #333;
+    }
+    .value-cell {
+        text-align: right;
+        font-weight: 600;
+    }
+    .total-row td {
+        font-weight: 700;
+        font-size: 11pt;
+        border-top: 2px solid #c8a87c;
+        background-color: #f9f6f0;
+    }
+    .accent-row td {
+        border-left: 3px solid #c8a87c;
+    }
+    .observ-box {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-top: 12px;
+        font-size: 9pt;
+        min-height: 40px;
+    }
+    .footer {
+        text-align: center;
+        font-size: 8pt;
+        color: #999;
+        margin-top: 24px;
+        border-top: 1px solid #ddd;
+        padding-top: 8px;
+    }
+    .badge-pendiente {
+        color: #b8860b;
+        font-weight: 700;
+    }
+    .badge-realizado {
+        color: #228b22;
+        font-weight: 700;
+    }
+    .info-box {
+        border: 1px dashed #c8a87c;
+        padding: 8px 12px;
+        margin: 10px 0;
+        font-size: 9pt;
+    }
+    .denom-grid td:first-child {
+        font-weight: 600;
+    }
+    .denom-grid td:nth-child(2) {
+        text-align: center;
+    }
+    .denom-grid td:nth-child(3) {
+        text-align: right;
+        font-weight: 600;
+    }
+    .subtotal-table td {
+        border: none;
+        padding: 3px 10px;
+        font-size: 9pt;
+    }
+    .subtotal-table .sub-label {
+        font-weight: 600;
+        color: #555;
+    }
+    .subtotal-table .sub-value {
+        text-align: right;
+        font-weight: 600;
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1 th:text="${empresaNombre != null} ? ${empresaNombre} : 'MI BOMBAY'">MI BOMBAY</h1>
+    <p>Sistema de Gesti&#243;n para Restaurantes</p>
+    <div class="empresa-row">
+        <span th:if="${auditorNombre != null}"><strong>Auditor:</strong> [[${auditorNombre}]]</span>
+        <span th:if="${cajero != null}"><strong>Cajero:</strong> [[${cajero}]]</span>
+        <span th:if="${turno != null}"><strong>Turno:</strong> [[${turno}]]</span>
+        <span><strong>Fecha:</strong> [[${#temporals.format(reporte.fecha, 'dd/MM/yyyy')}]]</span>
+    </div>
+</div>
+
+<div class="title-section">
+    <h2 th:text="${tipo == 'CUADRE_CAJA'} ? 'Cuadre de Caja' : (${tipo == 'CIERRE_Z'} ? 'Cierre Z' : 'Reporte X')">Reporte</h2>
+</div>
+
+<div th:if="${tipo == 'CIERRE_Z'}" class="info-box">
+    <span th:if="${reporte.cierreRealizado}" class="badge-realizado">&#10004; Cierre realizado</span>
+    <span th:unless="${reporte.cierreRealizado}" class="badge-pendiente">&#8987; Pendiente</span>
+    <span th:if="${reporte.cierreRealizado}" style="margin-left:16px;">
+        Cerrado por: <strong th:text="${reporte.nombreUsuarioCierre}">-</strong>
+        &#160;|&#160; Fecha: <strong th:text="${#temporals.format(reporte.fechaCierre, 'dd/MM/yyyy HH:mm')}">-</strong>
+    </span>
+</div>
+
+<!-- Totales del sistema (Reporte X / Cierre Z / Cuadre de Caja) -->
+<table>
+    <thead>
+        <tr>
+            <th style="width:60%;">Resumen de ventas</th>
+            <th style="width:40%;text-align:right;">Valor</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="label-cell">Cantidad de ventas</td>
+            <td class="value-cell" th:text="${reporte.cantidadVentas}">0</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Total recaudado</td>
+            <td class="value-cell" th:text="'$' + ${#numbers.formatDecimal(reporte.totalVentas, 1, 2)}">$0.00</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Efectivo neto (sistema)</td>
+            <td class="value-cell" th:text="'$' + ${#numbers.formatDecimal(reporte.totalEfectivo, 1, 2)}">$0.00</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Transferencia (sistema)</td>
+            <td class="value-cell" th:text="'$' + ${#numbers.formatDecimal(reporte.totalTransferencia, 1, 2)}">$0.00</td>
+        </tr>
+        <tr class="total-row">
+            <td>Total sistema</td>
+            <td class="value-cell" th:text="'$' + ${#numbers.formatDecimal(reporte.totalVentas, 1, 2)}">$0.00</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- Cuadre de Caja: detalle de conteo físico -->
+<div th:if="${tipo == 'CUADRE_CAJA'}">
+    <table>
+        <thead>
+            <tr>
+                <th style="width:15%;">Tipo</th>
+                <th style="width:30%;">Denominaci&#243;n</th>
+                <th style="width:20%;text-align:center;">Cantidad</th>
+                <th style="width:20%;text-align:right;">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="d : ${denominaciones}"
+                th:classappend="${d.tipo == 'Billete'} ? 'tipo-billete' : 'tipo-moneda'">
+                <td th:text="${d.tipo}">Billete</td>
+                <td th:text="'$' + ${#numbers.formatDecimal(d.valor, 1, 0)}">$100,000</td>
+                <td style="text-align:center;" th:text="${d.cantidad}">0</td>
+                <td style="text-align:right;" th:text="'$' + ${#numbers.formatDecimal(d.subtotal, 1, 0)}">$0</td>
+            </tr>
+            <tr class="total-row">
+                <td colspan="3"><strong>Subtotal efectivo</strong></td>
+                <td style="text-align:right;" th:text="'$' + ${#numbers.formatDecimal(subTotalDenominaciones, 1, 0)}">$0</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:60%;">Otros ingresos</th>
+                <th style="width:40%;text-align:right;">Valor</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="label-cell">Transferencias declaradas</td>
+                <td class="value-cell" th:text="'$' + ${#numbers.formatDecimal(transferenciaTotal, 1, 0)}">$0</td>
+            </tr>
+            <tr>
+                <td class="label-cell">Otros</td>
+                <td class="value-cell" th:text="'$' + ${#numbers.formatDecimal(otrosTotal, 1, 0)}">$0</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table>
+        <tbody>
+            <tr class="total-row">
+                <td style="width:60%;font-size:10pt;">Total contado (efectivo + transf. + otros)</td>
+                <td style="width:40%;text-align:right;font-size:10pt;" th:text="'$' + ${#numbers.formatDecimal(totalContado, 1, 0)}">$0</td>
+            </tr>
+            <tr>
+                <td class="label-cell">Total sistema</td>
+                <td class="value-cell" th:text="'$' + ${#numbers.formatDecimal(reporte.totalVentas, 1, 2)}">$0.00</td>
+            </tr>
+            <tr th:classappend="${diferencia != null and (diferencia.compareTo(0) == 0)} ? 'total-row' : ''">
+                <td style="font-weight:700;font-size:10pt;">Diferencia</td>
+                <td style="text-align:right;font-weight:700;font-size:10pt;"
+                    th:style="${diferencia != null and diferencia.compareTo(0) < 0} ? 'color:#ef4444;' : (${diferencia != null and diferencia.compareTo(0) > 0} ? 'color:#22c55e;' : '')"
+                    th:text="${diferencia != null and diferencia.compareTo(0) >= 0} ? '+' + ${#numbers.formatDecimal(diferencia, 1, 0)} : ${#numbers.formatDecimal(diferencia, 1, 0)}">$0</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div th:if="${observaciones != null and !observaciones.isEmpty()}" class="observ-box">
+        <strong>Observaciones:</strong><br/>
+        <span th:text="${observaciones}"></span>
+    </div>
+</div>
+
+<div class="footer">
+    Documento generado el [[${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy HH:mm')}]] — Mi Bombay S.A.S.
+</div>
+
+</body>
+</html>

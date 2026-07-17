@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title">Cuadre de Caja</h1>
+            <p class="sd-page-desc" th:text="'Arqueo de efectivo — ' + ${#temporals.format(fecha, 'EEEE dd/MM/yyyy')}">Arqueo de efectivo</p>
+            <div class="sd-title-accent"></div>
+        </div>
+        <div class="sd-page-actions">
+            <a th:href="@{/admin/cuadreCaja/historial}" class="sd-btn sd-btn--outline">
+                <i class="bi bi-clock-history"></i> Historial
+            </a>
+            <a th:href="@{/admin/cuadreCaja}" class="sd-btn sd-btn--outline">
+                <i class="bi bi-arrow-clockwise"></i> Reiniciar
+            </a>
+            <button type="submit" form="cuadre-form" formaction="/admin/cuadreCaja/guardar" class="sd-btn sd-btn--outline">
+                <i class="bi bi-save"></i> Guardar
+            </button>
+            <button type="submit" form="cuadre-form" formaction="/admin/cuadreCaja/pdf" class="sd-btn">
+                <i class="bi bi-file-pdf"></i> Generar PDF
+            </button>
+        </div>
+    </div>
+
+    <form id="cuadre-form" method="post">
+    <div class="sd-form-card sd-fade sd-fade--2" style="max-width:none;padding:1.75rem;">
+        <div class="sd-form-card-glow"></div>
+
+        <div class="sd-form-card-header">
+            <div class="sd-form-card-icon">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div>
+                <h3>Informaci&oacute;n del cuadre</h3>
+                <p>Los campos son editables</p>
+            </div>
+        </div>
+
+        <div class="sd-form-grid">
+            <div class="sd-form-field">
+                <label class="sd-form-label"><i class="bi bi-person-badge"></i> Realizado por</label>
+                <div class="sd-input-wrap">
+                    <input type="text" class="sd-form-input" id="auditor-input" name="auditor" th:value="${auditorNombre}" placeholder="Nombre del auditor" />
+                </div>
+            </div>
+            <div class="sd-form-field">
+                <label class="sd-form-label"><i class="bi bi-person"></i> Cajero</label>
+                <div class="sd-input-wrap">
+                    <input type="text" class="sd-form-input" id="cajero-input" name="cajero" placeholder="Nombre del cajero" />
+                </div>
+            </div>
+            <div class="sd-form-field">
+                <label class="sd-form-label"><i class="bi bi-clock"></i> Turno</label>
+                <div class="sd-input-wrap">
+                    <input type="text" class="sd-form-input" id="turno-input" name="turno" placeholder="Ma&ntilde;ana / Tarde / Nocturno" />
+                </div>
+            </div>
+            <div class="sd-form-field">
+                <label class="sd-form-label"><i class="bi bi-calendar3"></i> Fecha</label>
+                <div class="sd-input-wrap">
+                    <input type="text" class="sd-form-input" th:value="${#temporals.format(fecha, 'dd/MM/yyyy')}" disabled style="opacity:0.7;" />
+                </div>
+            </div>
+        </div>
+
+        <div class="sd-form-divider"></div>
+
+        <div class="sd-seccion-header">
+            <div class="sd-seccion-icon sd-seccion-icon--accent">
+                <i class="bi bi-cash"></i>
+            </div>
+            <div>
+                <h4 class="sd-seccion-title">Billetes</h4>
+                <p class="sd-seccion-desc">Ingresa la cantidad de cada billete</p>
+            </div>
+        </div>
+        <div class="sa-table-wrapper" style="border-radius:10px;">
+            <table class="sa-table" id="billetes-table">
+                <thead>
+                    <tr>
+                        <th style="padding-left:1.25rem;">Denominaci&oacute;n</th>
+                        <th style="width:120px;text-align:center;">Cantidad</th>
+                        <th style="width:140px;text-align:right;padding-right:1.25rem;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="billetes-body"></tbody>
+            </table>
+        </div>
+        <div class="sd-subtotal-row">
+            <span class="sd-subtotal-label">Subtotal billetes</span>
+            <span id="subtotal-billetes" class="sd-subtotal-value">$0</span>
+        </div>
+
+        <div class="sd-seccion-header">
+            <div class="sd-seccion-icon sd-seccion-icon--coin">
+                <i class="bi bi-coin"></i>
+            </div>
+            <div>
+                <h4 class="sd-seccion-title">Monedas</h4>
+                <p class="sd-seccion-desc">Ingresa la cantidad de cada moneda</p>
+            </div>
+        </div>
+        <div class="sa-table-wrapper" style="border-radius:10px;">
+            <table class="sa-table" id="monedas-table">
+                <thead>
+                    <tr>
+                        <th style="padding-left:1.25rem;">Denominaci&oacute;n</th>
+                        <th style="width:120px;text-align:center;">Cantidad</th>
+                        <th style="width:140px;text-align:right;padding-right:1.25rem;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="monedas-body"></tbody>
+            </table>
+        </div>
+        <div class="sd-subtotal-row" style="padding-bottom:0;">
+            <span class="sd-subtotal-label">Subtotal monedas</span>
+            <span id="subtotal-monedas" class="sd-subtotal-value sd-subtotal-value--coin">$0</span>
+        </div>
+
+        <div class="sd-form-divider"></div>
+
+        <!-- Transferencias y Otros -->
+        <div class="sd-form-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="sd-form-field">
+                <label class="sd-form-label"><i class="bi bi-phone"></i> Transferencias</label>
+                <div class="sd-input-wrap">
+                    <input type="number" class="sd-form-input" id="transferencia-input" name="transferencia" min="0" step="1000" value="0" placeholder="0" />
+                </div>
+            </div>
+            <div class="sd-form-field">
+                <label class="sd-form-label"><i class="bi bi-three-dots"></i> Otros</label>
+                <div class="sd-input-wrap">
+                    <input type="number" class="sd-form-input" id="otros-input" name="otros" min="0" step="100" value="0" placeholder="0" />
+                </div>
+            </div>
+        </div>
+
+        <div class="sd-form-field" style="margin-top:0.75rem;">
+            <label class="sd-form-label"><i class="bi bi-chat-text"></i> Observaciones</label>
+            <div class="sd-input-wrap">
+                <textarea class="sd-form-input" id="observaciones-input" name="observaciones" rows="2" placeholder="Notas adicionales..." style="resize:vertical;min-height:50px;"></textarea>
+            </div>
+        </div>
+
+        <div class="sd-form-divider"></div>
+
+        <!-- Totales del sistema (solo lectura) -->
+        <h4 class="sd-seccion-title sd-seccion-title--sub">
+            <i class="bi bi-laptop"></i> Totales del sistema
+        </h4>
+        <div class="sd-form-grid sd-grid-3cols">
+            <div class="sd-form-field">
+                <label class="sd-form-label"><i class="bi bi-cash"></i> Efectivo neto</label>
+                <div class="sd-valor-display sd-valor-display--accent">
+                    $<span id="sistema-efectivo">0</span>
+                </div>
+            </div>
+            <div class="sd-form-field">
+                <label class="sd-form-label"><i class="bi bi-phone"></i> Transferencias</label>
+                <div class="sd-valor-display sd-valor-display--info">
+                    $<span id="sistema-transferencia">0</span>
+                </div>
+            </div>
+            <div class="sd-form-field">
+                <label class="sd-form-label"><i class="bi bi-calculator"></i> Total sistema</label>
+                <div class="sd-valor-display sd-valor-display--light">
+                    $<span id="sistema-total">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sd-form-divider"></div>
+
+        <!-- Totales contados vs sistema -->
+        <h4 class="sd-seccion-title sd-seccion-title--sub">
+            <i class="bi bi-hand-index-thumb"></i> Comparaci&oacute;n
+        </h4>
+        <div class="sd-form-grid sd-grid-2cols">
+            <div class="sd-form-field">
+                <label class="sd-form-label"><i class="bi bi-cash-stack"></i> Total contado</label>
+                <div id="total-contado" class="sd-valor-display sd-valor-display--lg sd-valor-display--light">$0</div>
+            </div>
+            <div class="sd-form-field sd-diff-card" id="diferencia-card">
+                <label class="sd-form-label"><i class="bi bi-arrow-left-right"></i> Diferencia</label>
+                <div id="diferencia-value" class="sd-valor-display sd-valor-display--lg">$0</div>
+            </div>
+        </div>
+    </div>
+    </form>
+
+<script>
+    var billetes = [
+        { valor: 100000, label: '$100,000', name: 'billete100000' },
+        { valor:  50000, label: '$50,000', name: 'billete50000' },
+        { valor:  20000, label: '$20,000', name: 'billete20000' },
+        { valor:  10000, label: '$10,000', name: 'billete10000' },
+        { valor:   5000, label: '$5,000', name: 'billete5000' },
+        { valor:   2000, label: '$2,000', name: 'billete2000' },
+        { valor:   1000, label: '$1,000', name: 'billete1000' },
+    ];
+    var monedas = [
+        { valor: 1000, label: '$1,000', name: 'moneda1000' },
+        { valor:  500, label: '$500', name: 'moneda500' },
+        { valor:  200, label: '$200', name: 'moneda200' },
+        { valor:  100, label: '$100', name: 'moneda100' },
+        { valor:   50, label: '$50', name: 'moneda50' },
+    ];
+</script>
+<script th:inline="javascript">
+    var reporte = {
+        totalEfectivo: [(${reporte.totalEfectivo != null ? reporte.totalEfectivo : 0})],
+        totalTransferencia: [(${reporte.totalTransferencia != null ? reporte.totalTransferencia : 0})],
+        totalVentas: [(${reporte.totalVentas != null ? reporte.totalVentas : 0})]
+    };
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var totalContadoEl = document.getElementById('total-contado');
+    var diferenciaEl = document.getElementById('diferencia-value');
+    var diferenciaCard = document.getElementById('diferencia-card');
+    var sistemaEfectivoEl = document.getElementById('sistema-efectivo');
+    var sistemaTransferenciaEl = document.getElementById('sistema-transferencia');
+    var sistemaTotalEl = document.getElementById('sistema-total');
+
+    function fmt(n) {
+        return Number(n).toLocaleString('es-CO', {minimumFractionDigits:0, maximumFractionDigits:0});
+    }
+    function fmt2(n) {
+        return '$' + Number(n).toLocaleString('es-CO', {minimumFractionDigits:0, maximumFractionDigits:0});
+    }
+
+    function crearTabla(items, bodyId, subtotalId) {
+        var body = document.getElementById(bodyId);
+        var subtotalEl = document.getElementById(subtotalId);
+
+        items.forEach(function(item) {
+            var row = document.createElement('tr');
+            row.className = 'denom-row';
+            row.dataset.valor = item.valor;
+            row.innerHTML =
+                '<td class="sd-cell-denom">' + item.label + '</td>' +
+                '<td style="text-align:center;"><input type="number" name="' + item.name + '" class="sd-form-input denom-cant denom-input" min="0" step="1" value="0" /></td>' +
+                '<td class="sa-cell-center sd-denom-sub">$0</td>';
+            body.appendChild(row);
+
+            var input = row.querySelector('.denom-cant');
+            input.addEventListener('input', recalcular);
+            input.addEventListener('focus', function() { this.select(); });
+        });
+    }
+
+    function recalcular() {
+        var subBilletes = 0;
+        var subMonedas = 0;
+
+        document.querySelectorAll('#billetes-body .denom-row').forEach(function(row) {
+            var valor = parseInt(row.dataset.valor);
+            var cant = parseInt(row.querySelector('.denom-cant').value) || 0;
+            var sub = cant * valor;
+            row.querySelector('.sd-denom-sub').textContent = '$' + fmt(sub);
+            subBilletes += sub;
+        });
+        document.querySelectorAll('#monedas-body .denom-row').forEach(function(row) {
+            var valor = parseInt(row.dataset.valor);
+            var cant = parseInt(row.querySelector('.denom-cant').value) || 0;
+            var sub = cant * valor;
+            row.querySelector('.sd-denom-sub').textContent = '$' + fmt(sub);
+            subMonedas += sub;
+        });
+
+        var transferencia = parseInt(document.getElementById('transferencia-input').value) || 0;
+        var otros = parseInt(document.getElementById('otros-input').value) || 0;
+
+        var totalContado = subBilletes + subMonedas + transferencia + otros;
+
+        document.getElementById('subtotal-billetes').textContent = '$' + fmt(subBilletes);
+        document.getElementById('subtotal-monedas').textContent = '$' + fmt(subMonedas);
+
+        // Totales del sistema
+        sistemaEfectivoEl.textContent = fmt(reporte.totalEfectivo);
+        sistemaTransferenciaEl.textContent = fmt(reporte.totalTransferencia);
+        sistemaTotalEl.textContent = fmt(reporte.totalVentas);
+
+        totalContadoEl.textContent = '$' + fmt2(totalContado);
+
+        var diff = totalContado - reporte.totalVentas;
+        var signo = diff >= 0 ? '+' : '';
+        diferenciaEl.textContent = signo + fmt2(diff);
+
+        diferenciaEl.className = 'sd-valor-display sd-valor-display--lg';
+        diferenciaCard.className = 'sd-form-field sd-diff-card';
+        if (Math.abs(diff) < 0.01) {
+            diferenciaEl.classList.add('sd-diff-neutral');
+        } else if (diff > 0) {
+            diferenciaEl.classList.add('sd-diff-positive');
+            diferenciaCard.classList.add('sd-diff-card--positive');
+        } else {
+            diferenciaEl.classList.add('sd-diff-negative');
+            diferenciaCard.classList.add('sd-diff-card--negative');
+        }
+    }
+
+    crearTabla(billetes, 'billetes-body', 'subtotal-billetes');
+    crearTabla(monedas, 'monedas-body', 'subtotal-monedas');
+
+    document.getElementById('transferencia-input').addEventListener('input', recalcular);
+    document.getElementById('otros-input').addEventListener('input', recalcular);
+
+    recalcular();
+
+    var els = document.querySelectorAll('.sd-fade');
+    els.forEach(function(el, i) {
+        setTimeout(function() {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, 100 * i);
+    });
+});
+</script>
+</div>
+</body>
+</html>

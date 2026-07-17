@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div th:if="${diaCerrado}" class="sd-pos-page">
+        <div class="sd-pos-empty-state">
+            <div>
+                <i class="bi bi-lock-fill sd-fc-gauge-value"></i>
+                <h2 class="sd-text-secondary" style="margin-top:1rem;">D&iacute;a cerrado</h2>
+                <p class="sd-text-muted">El d&iacute;a de hoy ya fue cerrado. No es posible registrar ventas.</p>
+                <div style="display:flex;flex-direction:column;gap:0.5rem;align-items:center;margin-top:1.25rem;">
+                    <a th:href="@{/cierrez}" class="sd-btn">
+                        <i class="bi bi-file-text"></i> Ver cierre Z
+                    </a>
+                    <a th:href="@{/ventas}" class="sd-btn sd-btn--outline">
+                        <i class="bi bi-clock-history"></i> Historial de ventas
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div th:if="${!diaCerrado}" class="sd-pos-page sd-fade sd-fade--1">
+        <div th:if="${error}" class="sd-alert sd-alert--error" th:text="${error}"></div>
+        <div class="sd-pos-cart-backdrop" id="sdPosCartBackdrop"></div>
+        <div class="sd-pos-layout">
+            <!-- Products panel -->
+            <div class="sd-pos-products">
+                <div class="sd-pos-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="buscar-producto" class="sd-pos-search-input" placeholder="Buscar producto..." autofocus>
+                </div>
+                <div class="sd-pos-grid" id="productos-grid">
+                     <div th:each="p : ${productos}"
+                          class="sd-pos-item"
+                          th:attr="data-id=${p.id}, data-nombre=${p.nombre}, data-precio=${p.precioVenta}, data-tiene-receta=${p.tieneReceta}">
+                        <div class="sd-pos-item-icon">
+                            <i class="bi bi-cup-hot-fill"></i>
+                        </div>
+                        <div class="sd-pos-item-name" th:text="${p.nombre}">Producto</div>
+                        <div class="sd-pos-item-price" th:text="'$' + ${#numbers.formatDecimal(p.precioVenta, 1, 0)}">$0</div>
+                        <div th:if="${p.tieneReceta}" class="sd-pos-item-badge">Receta</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cart panel -->
+            <div class="sd-pos-cart">
+                <div class="sd-pos-cart-header">
+                    <i class="bi bi-cart"></i>
+                    <span>Carrito</span>
+                    <span class="sd-pos-cart-count" id="cart-count">0</span>
+                </div>
+
+                <div class="sd-pos-tabs-wrap">
+                    <div class="sd-pos-tabs" id="pos-tabs"></div>
+                    <button type="button" class="sd-pos-tab-add" id="btn-nueva-orden" title="Nueva orden">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                </div>
+
+                <form th:action="@{/ventas/guardar}" method="post" th:object="${venta}" id="venta-form">
+
+                    <div class="sd-pos-cart-items" id="cart-items">
+                        <div class="sd-pos-cart-empty" id="cart-empty">
+                            <i class="bi bi-bag"></i>
+                            <p>Selecciona productos para agregar al carrito</p>
+                        </div>
+                    </div>
+
+                    <div id="template-row" style="display:none">
+                        <input type="hidden" class="prod-id-input" value="" />
+                        <input type="hidden" class="prod-nombre-input" value="" />
+                        <input type="hidden" class="prod-precio-input" value="" />
+                        <input type="hidden" class="prod-cantidad-input" value="" />
+                        <input type="hidden" class="prod-modificaciones-input" value="" />
+                        <input type="hidden" class="prod-adicionales-input" value="" />
+                    </div>
+
+                    <div class="sd-pos-cart-totals">
+                        <div class="sd-pos-total-row">
+                            <span>Subtotal</span>
+                            <span class="sd-pos-total-value" id="cart-subtotal">$0</span>
+                        </div>
+                        <div class="sd-pos-total-row sd-pos-total-row--final">
+                            <span>TOTAL</span>
+                            <span class="sd-pos-total-value sd-pos-total-value--big" id="cart-total">$0</span>
+                        </div>
+                    </div>
+
+                    <div class="sd-pos-parallevar">
+                        <label class="sd-toggle">
+                            <input type="hidden" name="_paraLlevar" value="on" />
+                            <input type="checkbox" name="paraLlevar" id="paraLlevar-input" value="true" />
+                            <span class="sd-toggle-slider"></span>
+                            <span class="sd-toggle-text">Para llevar</span>
+                        </label>
+                    </div>
+
+                    <div class="sd-pos-cart-actions">
+                        <!-- Cliente search + select -->
+                        <div class="sd-pos-cliente-row">
+                            <label class="sd-pos-cliente-label">
+                                <i class="bi bi-person"></i> Cliente
+                            </label>
+                            <div class="sd-pos-cliente-wrap">
+                                <div class="sd-pos-cliente-input-group" id="cliente-input-group">
+                                    <input type="text" class="sd-pos-cliente-input" id="cliente-search"
+                                           placeholder="Buscar por nombre, tel&eacute;fono o DNI..." autocomplete="off">
+                                    <button type="button" class="sd-pos-cliente-btn-search" id="btn-buscar-cliente" title="Buscar">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                    <button type="button" class="sd-pos-cliente-btn-add" id="btn-nuevo-cliente" title="Nuevo cliente">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                </div>
+                                <div class="sd-pos-cliente-dropdown" id="cliente-dropdown"></div>
+                                <div class="sd-pos-cliente-tag" id="cliente-tag" style="display:none">
+                                    <span id="cliente-tag-name"></span>
+                                    <button type="button" class="sd-pos-cliente-btn-change" id="btn-cambiar-cliente" title="Cambiar cliente">
+                                        <i class="bi bi-search"></i> Cambiar
+                                    </button>
+                                    <button type="button" class="sd-pos-cliente-tag-clear" id="cliente-tag-clear">&times;</button>
+                                </div>
+                            </div>
+                            <input type="hidden" name="clienteId" th:field="*{clienteId}" id="clienteId-input" />
+                        </div>
+
+                        <!-- Payment section -->
+                        <div class="sd-pos-pago-seccion">
+                            <div class="sd-pos-pago-seccion-header">
+                                <i class="bi bi-credit-card-2-front"></i>
+                                <span>M&eacute;todo de pago</span>
+                            </div>
+                            <div class="sd-pos-pago-cards" id="pago-btns">
+                                <button type="button" class="sd-pos-pago-card" th:each="mp : ${metodosPago}"
+                                        th:attr="data-metodo=${mp.name()}">
+                                    <div class="sd-pos-pago-card-icon">
+                                        <i th:if="${mp.name() == 'EFECTIVO'}" class="bi bi-cash-stack"></i>
+                                        <i th:if="${mp.name() == 'TRANSFERENCIA'}" class="bi bi-phone"></i>
+                                        <i th:if="${mp.name() == 'MIXTO'}" class="bi bi-cash-coin"></i>
+                                    </div>
+                                    <div class="sd-pos-pago-card-text">
+                                        <div class="sd-pos-pago-card-label">
+                                            <span th:if="${mp.name() == 'EFECTIVO'}">Efectivo</span>
+                                            <span th:if="${mp.name() == 'TRANSFERENCIA'}">Transferencia</span>
+                                            <span th:if="${mp.name() == 'MIXTO'}">Mixto</span>
+                                        </div>
+                                        <div class="sd-pos-pago-card-desc">
+                                            <span th:if="${mp.name() == 'EFECTIVO'}">Pago en efectivo</span>
+                                            <span th:if="${mp.name() == 'TRANSFERENCIA'}">Nequi / Bancolombia</span>
+                                            <span th:if="${mp.name() == 'MIXTO'}">Efectivo + Transferencia</span>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                            <input type="hidden" name="metodoPago" th:field="*{metodoPago}" id="metodoPago-input" />
+                        </div>
+
+                        <!-- Payment detail panel (shown based on method) -->
+                        <div class="sd-pos-pago-detail" id="pago-detail" style="display:none">
+                            <div class="sd-pos-pago-detail-body" id="pago-detail-body"></div>
+                        </div>
+
+                        <input type="hidden" name="recibidoEfectivo" id="recibidoEfectivo-input" value="0" />
+                        <input type="hidden" name="recibidoTransferencia" id="recibidoTransferencia-input" value="0" />
+                        <input type="hidden" name="suspendidaId" id="suspendidaId-input" value="" />
+
+                        <button type="submit" class="sd-pos-btn-pagar" id="btn-pagar" disabled>
+                            <i class="bi bi-check-lg"></i> PAGAR
+                        </button>
+                        <a th:href="@{/ventas}" class="sd-btn sd-btn--outline" style="width:100%;">
+                            <i class="bi bi-clock-history"></i> Historial
+                        </a>
+                    </div>
+
+                </form>
+
+        <!-- Modal: Modificar Ingredientes (Receta) -->
+        <div class="sd-modal-overlay" id="modal-ingredientes" style="display:none">
+            <div class="sd-modal sd-modal--sm">
+                <div class="sd-modal-header">
+                    <i class="bi bi-pencil-square"></i>
+                    <span id="modal-ing-title">Modificar ingredientes</span>
+                    <button type="button" class="sd-modal-close" id="modal-ing-close">&times;</button>
+                </div>
+                <div class="sd-modal-body">
+                    <div class="sd-modal-field" style="margin-bottom:1rem;">
+                        <label class="sd-text-secondary" style="display:block;font-size:0.82rem;margin-bottom:0.4rem;">
+                            <i class="bi bi-chat-dots"></i> Comentario / Adicionales
+                        </label>
+                        <input type="text" id="modal-ing-comentario" class="sd-form-input"
+                               placeholder="Ej: picado a la mitad, para llevar..." style="width:100%;" />
+                    </div>
+                    <div id="modal-ing-section-receta" style="display:none">
+                        <p class="sd-text-muted" style="font-size:0.82rem;margin:0 0 1rem;">
+                            Desmarca los ingredientes que el cliente NO quiere
+                        </p>
+                        <div id="modal-ing-list"></div>
+                    </div>
+                </div>
+                <div class="sd-modal-footer">
+                    <button type="button" class="sd-btn sd-btn--outline" id="modal-ing-cancel">Cancelar</button>
+                    <button type="button" class="sd-btn" id="modal-ing-add">
+                        <i class="bi bi-cart-plus"></i> Agregar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Nuevo Cliente Rápido -->
+        <div class="sd-modal-overlay" id="modal-cliente" style="display:none">
+                    <div class="sd-modal">
+                        <div class="sd-modal-header">
+                            <i class="bi bi-person-plus"></i>
+                            <span>Nuevo Cliente R&aacute;pido</span>
+                            <button type="button" class="sd-modal-close" id="modal-close">&times;</button>
+                        </div>
+                        <div class="sd-modal-body">
+                            <div class="sd-modal-field">
+                                <label>Nombres *</label>
+                                <input type="text" id="modal-nombres" class="sd-form-input" placeholder="Ej: Juan Carlos">
+                            </div>
+                            <div class="sd-modal-field">
+                                <label>DNI / C&eacute;dula *</label>
+                                <input type="text" id="modal-dni" class="sd-form-input" placeholder="Ej: 123456789" required>
+                            </div>
+                            <div class="sd-modal-field">
+                                <label>Apellidos</label>
+                                <input type="text" id="modal-apellidos" class="sd-form-input" placeholder="Ej: P&eacute;rez">
+                            </div>
+                            <div class="sd-modal-field">
+                                <label>Tel&eacute;fono</label>
+                                <input type="text" id="modal-telefono" class="sd-form-input" placeholder="Ej: 300 123 4567">
+                            </div>
+                            <div class="sd-modal-error" id="modal-error" style="display:none"></div>
+                        </div>
+                        <div class="sd-modal-footer">
+                            <button type="button" class="sd-btn sd-btn--outline" id="modal-cancel">Cancelar</button>
+                            <button type="button" class="sd-btn" id="modal-guardar">
+                                <i class="bi bi-check-lg"></i> Guardar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <script>
+        var productos = [];
+        var clientes = [];
+        var cart = [];
+        var index = 0;
+        var selectedMetodo = null;
+        var recetasIngredientes = {};
+        var tabs = [];
+        var activeTabId = null;
+        var syncTimer = null;
+        var MAX_TABS = 8;
+        var suspendidasIniciales = [];
+    </script>
+    <script th:inline="javascript">
+        recetasIngredientes = [(${recetasJson})];
+    </script>
+    <script th:inline="javascript">
+        suspendidasIniciales = [(${ventasSuspendidasJson})];
+    </script>
+    <script th:inline="javascript" th:each="p : ${productos}">
+        productos.push({id: [[${p.id}]], nombre: '[[${p.nombre}]]', precio: [[${p.precioVenta}]]});
+    </script>
+    <script th:inline="javascript" th:each="c : ${clientes}">
+        clientes.push({id: [[${c.id}]], nombres: '[[${c.nombres}]]', apellidos: '[[${c.apellidos}]]', dni: '[[${c.dni}]]', telefono: '[[${c.telefono}]]'});
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var grid = document.getElementById('productos-grid');
+            var cartItems = document.getElementById('cart-items');
+            var cartEmpty = document.getElementById('cart-empty');
+            var cartCount = document.getElementById('cart-count');
+            var cartSubtotal = document.getElementById('cart-subtotal');
+            var cartTotal = document.getElementById('cart-total');
+            var btnPagar = document.getElementById('btn-pagar');
+            var searchInput = document.getElementById('buscar-producto');
+            var clienteIdInput = document.getElementById('clienteId-input');
+            var clienteSearch = document.getElementById('cliente-search');
+            var clienteDropdown = document.getElementById('cliente-dropdown');
+            var clienteTag = document.getElementById('cliente-tag');
+            var clienteTagName = document.getElementById('cliente-tag-name');
+            var clienteTagClear = document.getElementById('cliente-tag-clear');
+            var btnBuscarCliente = document.getElementById('btn-buscar-cliente');
+            var btnCambiarCliente = document.getElementById('btn-cambiar-cliente');
+            var btnNuevoCliente = document.getElementById('btn-nuevo-cliente');
+            var clienteInputGroup = document.getElementById('cliente-input-group');
+            var pagoBtns = document.getElementById('pago-btns');
+            var metodoPagoInput = document.getElementById('metodoPago-input');
+            var pagoDetail = document.getElementById('pago-detail');
+            var pagoDetailBody = document.getElementById('pago-detail-body');
+            var recibidoEfectivoInput = document.getElementById('recibidoEfectivo-input');
+            var recibidoTransferenciaInput = document.getElementById('recibidoTransferencia-input');
+            var template = document.getElementById('template-row');
+            var suspendidaIdInput = document.getElementById('suspendidaId-input');
+            var posTabs = document.getElementById('pos-tabs');
+            var btnNuevaOrden = document.getElementById('btn-nueva-orden');
+            var paraLlevarInput = document.getElementById('paraLlevar-input');
+            var nextLocalId = 1;
+
+            function formatCOP(val) {
+                return '$' + Number(val).toLocaleString('es-CO', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+            }
+
+            function formatCOP2(val) {
+                return '$' + Number(val).toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
+
+            function formatCOPShort(val) {
+                var n = Number(val);
+                if (n >= 1000000) return '$' + (n / 1000000).toFixed(1) + 'M';
+                if (n >= 1000) return '$' + (n / 1000).toFixed(0) + 'K';
+                return '$' + n;
+            }
+
+            function getActiveTab() {
+                return tabs.find(function(t) { return t._localId === activeTabId; });
+            }
+
+            function getTabTotal(tab) {
+                if (!tab || !tab.cart) return 0;
+                var total = 0;
+                tab.cart.forEach(function(item) { total += item.cantidad * item.precio; });
+                return total;
+            }
+
+            function capturarEstadoTab() {
+                var tab = getActiveTab();
+                if (!tab) return;
+                tab.cart = cart.map(function(item) {
+                    return Object.assign({}, item);
+                });
+                tab.clienteId = clienteIdInput.value ? parseInt(clienteIdInput.value) : null;
+                tab.clienteNombre = (clienteTag.style.display !== 'none') ? clienteTagName.textContent : null;
+                tab.metodoPago = selectedMetodo;
+                tab.recibidoEfectivo = parseFloat(recibidoEfectivoInput.value) || 0;
+                tab.recibidoTransferencia = parseFloat(recibidoTransferenciaInput.value) || 0;
+                tab.paraLlevar = paraLlevarInput ? paraLlevarInput.checked : false;
+            }
+
+            function restaurarEstadoTab(tab) {
+                cart = (tab.cart || []).map(function(item) {
+                    return Object.assign({}, item);
+                });
+                selectedMetodo = tab.metodoPago || null;
+                metodoPagoInput.value = selectedMetodo || '';
+
+                if (tab.clienteId) {
+                    clienteIdInput.value = tab.clienteId;
+                    var c = clientes.find(function(c) { return c.id === tab.clienteId; });
+                    if (c) {
+                        clienteTagName.textContent = c.nombres + ' ' + (c.apellidos || '');
+                        clienteTag.style.display = '';
+                        clienteInputGroup.style.display = 'none';
+                    } else if (tab.clienteNombre) {
+                        clienteTagName.textContent = tab.clienteNombre;
+                        clienteTag.style.display = '';
+                        clienteInputGroup.style.display = 'none';
+                    }
+                } else {
+                    clienteIdInput.value = '';
+                    clienteTag.style.display = 'none';
+                    clienteInputGroup.style.display = '';
+                }
+
+                pagoBtns.querySelectorAll('.sd-pos-pago-card').forEach(function(b) {
+                    if (b.dataset.metodo === selectedMetodo) {
+                        b.classList.add('sd-pos-pago-card--active');
+                    } else {
+                        b.classList.remove('sd-pos-pago-card--active');
+                    }
+                });
+
+                if (paraLlevarInput) {
+                    paraLlevarInput.checked = tab.paraLlevar || false;
+                }
+
+                actualizarCarrito();
+                actualizarPagoDetail();
+            }
+
+            function renderTabs() {
+                posTabs.innerHTML = '';
+                tabs.forEach(function(tab) {
+                    var pill = document.createElement('div');
+                    pill.className = 'sd-pos-tab' + (tab._localId === activeTabId ? ' sd-pos-tab--active' : '');
+                    pill.dataset.localId = tab._localId;
+                    var itemCount = tab.cart ? tab.cart.length : 0;
+                    var total = getTabTotal(tab);
+                    pill.innerHTML =
+                        '<span class="sd-pos-tab-label">' + tab.etiqueta + '</span>' +
+                        (itemCount > 0 ? '<span class="sd-pos-tab-badge">' + itemCount + '</span>' : '') +
+                        (itemCount > 0 ? '<span class="sd-pos-tab-total">' + formatCOPShort(total) + '</span>' : '') +
+                        '<button type="button" class="sd-pos-tab-close" data-local-id="' + tab._localId + '" title="Cerrar">&times;</button>';
+                    pill.addEventListener('click', function(e) {
+                        if (e.target.closest('.sd-pos-tab-close')) return;
+                        cambiarTab(tab._localId);
+                    });
+                    posTabs.appendChild(pill);
+                });
+                posTabs.querySelectorAll('.sd-pos-tab-close').forEach(function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        cerrarTab(parseInt(this.dataset.localId));
+                    });
+                });
+                btnNuevaOrden.disabled = tabs.length >= MAX_TABS;
+            }
+
+            function updateSuspendidaIdInput() {
+                var tab = getActiveTab();
+                suspendidaIdInput.value = (tab && tab.id) ? tab.id : '';
+            }
+
+            function cambiarTab(localId) {
+                if (localId === activeTabId) return;
+                capturarEstadoTab();
+                var prevTab = getActiveTab();
+                if (prevTab) scheduleSync(prevTab._localId);
+                activeTabId = localId;
+                var tab = getActiveTab();
+                if (tab) restaurarEstadoTab(tab);
+                renderTabs();
+                updateSuspendidaIdInput();
+            }
+
+            function crearTabVacio(etiqueta) {
+                var consumidorFinal = clientes.find(function(c) {
+                    return c.nombres === 'Consumidor' && c.apellidos === 'Final';
+                });
+                return {
+                    id: null,
+                    _localId: nextLocalId++,
+                    etiqueta: etiqueta,
+                    cart: [],
+                    clienteId: consumidorFinal ? consumidorFinal.id : null,
+                    clienteNombre: consumidorFinal ? 'Consumidor Final' : null,
+                    metodoPago: null,
+                    recibidoEfectivo: 0,
+                    recibidoTransferencia: 0,
+                    paraLlevar: false,
+                    ordenTab: tabs.length + 1
+                };
+            }
+
+            function nuevaOrden() {
+                if (tabs.length >= MAX_TABS) {
+                    alert('M\u00e1ximo ' + MAX_TABS + ' \u00f3rdenes en espera');
+                    return;
+                }
+                capturarEstadoTab();
+                var prevTab = getActiveTab();
+                if (prevTab) scheduleSync(prevTab._localId);
+                var etiqueta = 'Orden ' + (tabs.length + 1);
+                var tab = crearTabVacio(etiqueta);
+                tabs.push(tab);
+                activeTabId = tab._localId;
+                restaurarEstadoTab(tab);
+                renderTabs();
+                updateSuspendidaIdInput();
+                persistirTab(tab._localId, true);
+            }
+
+            function cerrarTab(localId) {
+                var tab = tabs.find(function(t) { return t._localId === localId; });
+                if (!tab) return;
+                if (tabs.length === 1) {
+                    if (tab.cart && tab.cart.length > 0) {
+                        if (!confirm('Esta es la \u00fanica orden. \u00bfVaciar y crear una nueva?')) return;
+                        tab.cart = [];
+                    }
+                } else {
+                    if (tab.cart && tab.cart.length > 0) {
+                        if (!confirm('\u00bfCerrar la orden "' + tab.etiqueta + '"? Se perder\u00e1n los productos en el carrito.')) return;
+                    }
+                }
+                if (tab.id) {
+                    fetch('/api/v1/ventas-suspendidas/' + tab.id, { method: 'DELETE' })
+                        .catch(function() {});
+                }
+                var idx = tabs.indexOf(tab);
+                tabs.splice(idx, 1);
+                if (activeTabId === localId) {
+                    if (tabs.length > 0) {
+                        var newIdx = Math.min(idx, tabs.length - 1);
+                        activeTabId = tabs[newIdx]._localId;
+                        restaurarEstadoTab(tabs[newIdx]);
+                    } else {
+                        var nueva = crearTabVacio('Orden 1');
+                        tabs.push(nueva);
+                        activeTabId = nueva._localId;
+                        restaurarEstadoTab(nueva);
+                        persistirTab(nueva._localId, true);
+                    }
+                }
+                renderTabs();
+                updateSuspendidaIdInput();
+            }
+
+            function scheduleSync(localId) {
+                if (syncTimer) clearTimeout(syncTimer);
+                syncTimer = setTimeout(function() {
+                    persistirTab(localId || activeTabId, false);
+                }, 800);
+            }
+
+            function persistirTab(localId, inmediato) {
+                var tab = tabs.find(function(t) { return t._localId === localId; });
+                if (!tab) return;
+                capturarEstadoTab();
+                var wasNew = (tab.id == null);
+                var body = {
+                    id: tab.id,
+                    etiqueta: tab.etiqueta,
+                    itemsJson: JSON.stringify(tab.cart || []),
+                    clienteId: tab.clienteId,
+                    metodoPago: tab.metodoPago,
+                    recibidoEfectivo: tab.recibidoEfectivo || 0,
+                    recibidoTransferencia: tab.recibidoTransferencia || 0,
+                    paraLlevar: tab.paraLlevar || false,
+                    ordenTab: tab.ordenTab
+                };
+                fetch('/api/v1/ventas-suspendidas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.id && wasNew) {
+                        tab.id = data.id;
+                        if (tab._localId === activeTabId) updateSuspendidaIdInput();
+                    }
+                })
+                .catch(function() {});
+            }
+
+            function initTabs() {
+                if (suspendidasIniciales && suspendidasIniciales.length > 0) {
+                    suspendidasIniciales.forEach(function(s) {
+                        var parsedCart = [];
+                        try { parsedCart = JSON.parse(s.itemsJson || '[]'); }
+                        catch(e) { parsedCart = []; }
+                        tabs.push({
+                            id: s.id,
+                            _localId: nextLocalId++,
+                            etiqueta: s.etiqueta || ('Orden ' + (tabs.length + 1)),
+                            cart: parsedCart,
+                            clienteId: s.clienteId,
+                            clienteNombre: s.clienteNombre,
+                            metodoPago: s.metodoPago,
+                            recibidoEfectivo: s.recibidoEfectivo || 0,
+                            recibidoTransferencia: s.recibidoTransferencia || 0,
+                            paraLlevar: s.paraLlevar || false,
+                            ordenTab: s.ordenTab || (tabs.length + 1)
+                        });
+                    });
+                }
+                if (tabs.length === 0) {
+                    var tab = crearTabVacio('Orden 1');
+                    tabs.push(tab);
+                    persistirTab(tab._localId, true);
+                }
+                activeTabId = tabs[0]._localId;
+                restaurarEstadoTab(tabs[0]);
+                renderTabs();
+                updateSuspendidaIdInput();
+            }
+
+            function getTotal() {
+                var subtotal = 0;
+                cart.forEach(function(item) { subtotal += item.cantidad * item.precio; });
+                return subtotal;
+            }
+
+            function actualizarPagoDetail() {
+                var total = getTotal();
+                pagoDetailBody.innerHTML = '';
+                pagoDetail.style.display = selectedMetodo ? '' : 'none';
+                if (!selectedMetodo) return;
+
+                if (selectedMetodo === 'EFECTIVO') {
+                    pagoDetailBody.innerHTML =
+                        '<div class="sd-pos-pago-detail-row">' +
+                            '<label>Recibido</label>' +
+                            '<input type="number" step="0.01" min="0" class="sd-pos-pago-detail-input" id="input-recibido-efectivo" placeholder="$0" value="0" />' +
+                        '</div>' +
+                        '<div class="sd-pos-pago-detail-row sd-pos-pago-detail-row--result" id="cambio-row" style="display:none">' +
+                            '<span class="sd-pos-pago-detail-label">Cambio</span>' +
+                            '<span class="sd-pos-pago-detail-value sd-pos-pago-detail-value--cambio" id="cambio-value">$0</span>' +
+                        '</div>';
+                } else if (selectedMetodo === 'TRANSFERENCIA') {
+                    pagoDetailBody.innerHTML =
+                        '<div class="sd-pos-pago-detail-row">' +
+                            '<label>Monto transferencia</label>' +
+                            '<input type="number" step="0.01" min="0" class="sd-pos-pago-detail-input" id="input-recibido-transferencia" placeholder="$0" value="0" />' +
+                        '</div>';
+                } else if (selectedMetodo === 'MIXTO') {
+                    pagoDetailBody.innerHTML =
+                        '<div class="sd-pos-pago-detail-row">' +
+                            '<label>Recibido efectivo</label>' +
+                            '<input type="number" step="0.01" min="0" class="sd-pos-pago-detail-input" id="input-recibido-efectivo" placeholder="$0" value="0" />' +
+                        '</div>' +
+                        '<div class="sd-pos-pago-detail-row">' +
+                            '<label>Monto transferencia</label>' +
+                            '<input type="number" step="0.01" min="0" class="sd-pos-pago-detail-input" id="input-recibido-transferencia" placeholder="$0" value="0" />' +
+                        '</div>' +
+                        '<div class="sd-pos-pago-detail-row sd-pos-pago-detail-row--result" id="cambio-row" style="display:none">' +
+                            '<span class="sd-pos-pago-detail-label">Cambio</span>' +
+                            '<span class="sd-pos-pago-detail-value sd-pos-pago-detail-value--cambio" id="cambio-value">$0</span>' +
+                        '</div>';
+                }
+                // Bind inputs to validation
+                var inputs = pagoDetailBody.querySelectorAll('input');
+                inputs.forEach(function(inp) {
+                    inp.addEventListener('input', validarPago);
+                    inp.addEventListener('focus', function() { this.select(); });
+                });
+                validarPago();
+            }
+
+            function validarPago() {
+                var total = getTotal();
+                var ef = parseFloat(document.getElementById('input-recibido-efectivo')?.value) || 0;
+                var tr = parseFloat(document.getElementById('input-recibido-transferencia')?.value) || 0;
+                var suma = ef + tr;
+                recibidoEfectivoInput.value = ef;
+                recibidoTransferenciaInput.value = tr;
+                var valido = false;
+
+                if (selectedMetodo === 'EFECTIVO') {
+                    valido = ef >= total;
+                    var cambioRow = document.getElementById('cambio-row');
+                    var cambioVal = document.getElementById('cambio-value');
+                    if (valido) {
+                        cambioRow.style.display = '';
+                        cambioVal.textContent = formatCOP2(ef - total);
+                    } else {
+                        cambioRow.style.display = 'none';
+                    }
+                } else if (selectedMetodo === 'TRANSFERENCIA') {
+                    valido = tr >= total;
+                } else if (selectedMetodo === 'MIXTO') {
+                    valido = suma >= total;
+                    var cambioRow = document.getElementById('cambio-row');
+                    var cambioVal = document.getElementById('cambio-value');
+                    if (valido) {
+                        cambioRow.style.display = '';
+                        cambioVal.textContent = formatCOP2(suma - total);
+                    } else {
+                        cambioRow.style.display = 'none';
+                    }
+                }
+                btnPagar.disabled = cart.length === 0 || !selectedMetodo || !valido;
+                var tab = getActiveTab();
+                if (tab) {
+                    tab.recibidoEfectivo = ef;
+                    tab.recibidoTransferencia = tr;
+                    scheduleSync();
+                }
+            }
+
+            function actualizarCarrito() {
+                var subtotal = 0;
+                cartItems.querySelectorAll('.sd-pos-cart-row').forEach(function(row) {
+                    row.remove();
+                });
+                cartEmpty.style.display = cart.length === 0 ? '' : 'none';
+                cart.forEach(function(item, i) {
+                    var row = document.createElement('div');
+                    row.className = 'sd-pos-cart-row';
+                    var sub = item.cantidad * item.precio;
+                    var modHtml = item.modificaciones ? '<div class="sd-pos-cart-row-mod">' + item.modificaciones + '</div>' : '';
+                    var adicHtml = item.adicionales ? '<div class="sd-pos-cart-row-adic">' + item.adicionales + '</div>' : '';
+                    var btnMod = '<button type="button" class="sd-pos-qty-btn sd-pos-qty-btn--mod" data-idx="' + i + '" title="Comentario / Adicionales"><i class="bi bi-pencil"></i></button>';
+                    row.innerHTML =
+                        '<div class="sd-pos-cart-row-info">' +
+                            '<div class="sd-pos-cart-row-name">' + item.nombre + '</div>' +
+                            adicHtml +
+                            modHtml +
+                            '<div class="sd-pos-cart-row-price">' + formatCOP(item.precio) + ' c/u</div>' +
+                        '</div>' +
+                        '<div class="sd-pos-cart-row-qty">' +
+                            btnMod +
+                            '<button type="button" class="sd-pos-qty-btn qty-minus" data-idx="' + i + '">&minus;</button>' +
+                            '<span class="sd-pos-qty-val">' + item.cantidad + '</span>' +
+                            '<button type="button" class="sd-pos-qty-btn qty-plus" data-idx="' + i + '">+</button>' +
+                        '</div>' +
+                        '<div class="sd-pos-cart-row-sub">' + formatCOP2(sub) + '</div>' +
+                        '<button type="button" class="sd-pos-cart-row-del qty-remove" data-idx="' + i + '">&times;</button>';
+                    cartItems.appendChild(row);
+                    subtotal += sub;
+                });
+                cartCount.textContent = cart.length;
+                cartSubtotal.textContent = formatCOP2(subtotal);
+                cartTotal.textContent = formatCOP2(subtotal);
+                btnPagar.disabled = cart.length === 0 || !selectedMetodo;
+                if (selectedMetodo) validarPago();
+
+                // Mod button - open ingredient modal
+                cartItems.querySelectorAll('.sd-pos-qty-btn--mod').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var idx = parseInt(this.dataset.idx);
+                        var item = cart[idx];
+                        if (!item || !recetasIngredientes[item.id]) return;
+                        mostrarModalIngredientes(item, idx);
+                    });
+                });
+
+                cartItems.querySelectorAll('.qty-minus').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var idx = parseInt(this.dataset.idx);
+                        if (cart[idx].cantidad > 1) {
+                            cart[idx].cantidad--;
+                        }
+                        actualizarHiddenInputs();
+                        actualizarCarrito();
+                    });
+                });
+                cartItems.querySelectorAll('.qty-plus').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var idx = parseInt(this.dataset.idx);
+                        cart[idx].cantidad++;
+                        actualizarHiddenInputs();
+                        actualizarCarrito();
+                    });
+                });
+                cartItems.querySelectorAll('.qty-remove').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var idx = parseInt(this.dataset.idx);
+                        cart.splice(idx, 1);
+                        actualizarHiddenInputs();
+                        actualizarCarrito();
+                    });
+                });
+                actualizarHiddenInputs();
+                scheduleSync();
+            }
+
+            function actualizarHiddenInputs() {
+                cartItems.querySelectorAll('.sd-pos-hidden-row').forEach(function(el) { el.remove(); });
+                cart.forEach(function(item, i) {
+                    var clone = template.cloneNode(true);
+                    clone.id = '';
+                    clone.style.display = '';
+                    clone.className = 'sd-pos-hidden-row';
+                    clone.querySelector('.prod-id-input').name = 'detalles[' + i + '].productoId';
+                    clone.querySelector('.prod-id-input').value = item.id;
+                    clone.querySelector('.prod-nombre-input').name = 'detalles[' + i + '].productoNombre';
+                    clone.querySelector('.prod-nombre-input').value = item.nombre;
+                    clone.querySelector('.prod-precio-input').name = 'detalles[' + i + '].precioUnitario';
+                    clone.querySelector('.prod-precio-input').value = item.precio;
+                    clone.querySelector('.prod-cantidad-input').name = 'detalles[' + i + '].cantidad';
+                    clone.querySelector('.prod-cantidad-input').value = item.cantidad;
+                    clone.querySelector('.prod-modificaciones-input').name = 'detalles[' + i + '].modificaciones';
+                    clone.querySelector('.prod-modificaciones-input').value = item.modificaciones || '';
+                    clone.querySelector('.prod-adicionales-input').name = 'detalles[' + i + '].adicionales';
+                    clone.querySelector('.prod-adicionales-input').value = item.adicionales || '';
+                    if (item.ingredientesExcluidos && item.ingredientesExcluidos.length > 0) {
+                        item.ingredientesExcluidos.forEach(function(ingId, j) {
+                            var hidden = document.createElement('input');
+                            hidden.type = 'hidden';
+                            hidden.name = 'detalles[' + i + '].ingredientesExcluidosIds[' + j + ']';
+                            hidden.value = ingId;
+                            clone.appendChild(hidden);
+                        });
+                    }
+                    cartItems.appendChild(clone);
+                });
+            }
+
+            function agregarAlCarrito(id, nombre, precio, tieneReceta) {
+                var existing = cart.findIndex(function(item) {
+                    return item.id === id && (item.modificaciones || '') === '' && (item.adicionales || '') === '';
+                });
+                if (existing >= 0 && !tieneReceta) {
+                    cart[existing].cantidad++;
+                } else if (existing >= 0 && tieneReceta && !cart[existing].modificaciones && !cart[existing].adicionales) {
+                    cart[existing].cantidad++;
+                } else {
+                    cart.push({id: id, nombre: nombre, precio: precio, cantidad: 1,
+                        tieneReceta: tieneReceta, modificaciones: '', adicionales: '', ingredientesExcluidos: []});
+                }
+                actualizarCarrito();
+            }
+
+            grid.addEventListener('click', function(e) {
+                var item = e.target.closest('.sd-pos-item');
+                if (!item) return;
+                var id = parseInt(item.dataset.id);
+                var nombre = item.dataset.nombre;
+                var precio = parseFloat(item.dataset.precio);
+                var tieneReceta = item.dataset.tieneReceta === 'true';
+                agregarAlCarrito(id, nombre, precio, tieneReceta);
+                item.style.transform = 'scale(0.93)';
+                setTimeout(function() { item.style.transform = ''; }, 150);
+            });
+
+            searchInput.addEventListener('input', function() {
+                var q = this.value.toLowerCase();
+                grid.querySelectorAll('.sd-pos-item').forEach(function(el) {
+                    var nombre = el.dataset.nombre.toLowerCase();
+                    el.style.display = nombre.indexOf(q) >= 0 ? '' : 'none';
+                });
+            });
+
+            function seleccionarCliente(id) {
+                var c = clientes.find(function(c) { return c.id === id; });
+                if (!c) return;
+                clienteIdInput.value = id;
+                clienteTagName.textContent = c.nombres + ' ' + (c.apellidos || '');
+                clienteTag.style.display = '';
+                clienteInputGroup.style.display = 'none';
+                clienteSearch.value = '';
+                clienteDropdown.style.display = 'none';
+                var tab = getActiveTab();
+                if (tab) {
+                    tab.clienteId = id;
+                    tab.clienteNombre = c.nombres + ' ' + (c.apellidos || '');
+                    scheduleSync();
+                }
+            }
+
+            // Cliente search filter
+            clienteSearch.addEventListener('input', function() {
+                var q = this.value.toLowerCase().trim();
+                if (!q) {
+                    clienteDropdown.style.display = 'none';
+                    return;
+                }
+                var results = clientes.filter(function(c) {
+                    var fullName = (c.nombres + ' ' + (c.apellidos || '')).toLowerCase();
+                    var tel = (c.telefono || '').toLowerCase();
+                    var doc = (c.dni || '').toLowerCase();
+                    return fullName.indexOf(q) >= 0 || tel.indexOf(q) >= 0 || doc.indexOf(q) >= 0;
+                });
+                if (results.length === 0) {
+                    clienteDropdown.innerHTML = '<div class="sd-pos-cliente-dropdown-empty">Presiona + para crear nuevo</div>';
+                    clienteDropdown.style.display = 'block';
+                } else {
+                    clienteDropdown.innerHTML = results.map(function(c) {
+                        return '<div class="sd-pos-cliente-dropdown-item" data-id="' + c.id + '">' +
+                            '<span class="sd-pos-cliente-dropdown-name">' + c.nombres + ' ' + (c.apellidos || '') + '</span>' +
+                            '<span class="sd-pos-cliente-dropdown-tel">' + (c.dni ? c.dni : (c.telefono || '')) + '</span>' +
+                            '</div>';
+                    }).join('');
+                    clienteDropdown.style.display = 'block';
+                }
+            });
+
+            // Select cliente from dropdown
+            clienteDropdown.addEventListener('click', function(e) {
+                var item = e.target.closest('.sd-pos-cliente-dropdown-item');
+                if (!item) return;
+                seleccionarCliente(parseInt(item.dataset.id));
+            });
+
+            function mostrarBusqueda() {
+                clienteIdInput.value = '';
+                clienteTag.style.display = 'none';
+                clienteInputGroup.style.display = '';
+                clienteSearch.value = '';
+                clienteSearch.focus();
+                clienteDropdown.style.display = 'none';
+                var tab = getActiveTab();
+                if (tab) {
+                    tab.clienteId = null;
+                    tab.clienteNombre = null;
+                    scheduleSync();
+                }
+            }
+
+            // Search button click - show results
+            btnBuscarCliente.addEventListener('click', function() {
+                var q = clienteSearch.value.trim();
+                if (q) {
+                    clienteSearch.dispatchEvent(new Event('input'));
+                } else {
+                    clienteDropdown.innerHTML = '<div class="sd-pos-cliente-dropdown-empty">Escribe nombre, tel&eacute;fono o DNI</div>';
+                    clienteDropdown.style.display = 'block';
+                }
+            });
+
+            // Cambiar button - go back to search mode
+            btnCambiarCliente.addEventListener('click', mostrarBusqueda);
+
+            // Clear selected cliente
+            clienteTagClear.addEventListener('click', mostrarBusqueda);
+
+            // Close dropdown on outside click
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.sd-pos-cliente-wrap')) {
+                    clienteDropdown.style.display = 'none';
+                }
+            });
+
+            // === Modal Nuevo Cliente Rápido ===
+            var modalCliente = document.getElementById('modal-cliente');
+            var modalNombres = document.getElementById('modal-nombres');
+            var modalDni = document.getElementById('modal-dni');
+            var modalApellidos = document.getElementById('modal-apellidos');
+            var modalTelefono = document.getElementById('modal-telefono');
+            var modalError = document.getElementById('modal-error');
+            var modalGuardar = document.getElementById('modal-guardar');
+            var modalCancel = document.getElementById('modal-cancel');
+            var modalClose = document.getElementById('modal-close');
+
+            function cerrarModal() {
+                modalCliente.style.display = 'none';
+            }
+
+            btnNuevoCliente.addEventListener('click', function() {
+                modalNombres.value = '';
+                modalDni.value = '';
+                modalApellidos.value = '';
+                modalTelefono.value = '';
+                modalError.style.display = 'none';
+                modalCliente.style.display = '';
+                setTimeout(function() { modalNombres.focus(); }, 100);
+            });
+
+            modalClose.addEventListener('click', cerrarModal);
+            modalCancel.addEventListener('click', cerrarModal);
+            modalCliente.addEventListener('click', function(e) {
+                if (e.target === modalCliente) cerrarModal();
+            });
+
+            // Enter key in modal fields triggers guardar
+            [modalNombres, modalDni, modalApellidos, modalTelefono].forEach(function(inp) {
+                inp.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') { e.preventDefault(); modalGuardar.click(); }
+                });
+            });
+
+            modalGuardar.addEventListener('click', function() {
+                var nombres = modalNombres.value.trim();
+                if (!nombres) {
+                    modalError.textContent = 'El nombre es obligatorio';
+                    modalError.style.display = '';
+                    modalNombres.focus();
+                    return;
+                }
+                var dni = modalDni.value.trim();
+                if (!dni) {
+                    modalError.textContent = 'El DNI es obligatorio';
+                    modalError.style.display = '';
+                    modalDni.focus();
+                    return;
+                }
+                modalGuardar.disabled = true;
+                modalGuardar.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
+
+                fetch('/api/v1/clientes/rapido', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nombres: nombres,
+                        dni: modalDni.value.trim(),
+                        apellidos: modalApellidos.value.trim(),
+                        telefono: modalTelefono.value.trim()
+                    })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.error) {
+                        modalError.textContent = data.error;
+                        modalError.style.display = '';
+                        modalGuardar.disabled = false;
+                        modalGuardar.innerHTML = '<i class="bi bi-check-lg"></i> Guardar';
+                        return;
+                    }
+                    clientes.push({
+                        id: data.id,
+                        nombres: data.nombres,
+                        apellidos: data.apellidos || '',
+                        dni: data.dni || '',
+                        telefono: modalTelefono.value.trim()
+                    });
+                    seleccionarCliente(data.id);
+                    cerrarModal();
+                    modalGuardar.disabled = false;
+                    modalGuardar.innerHTML = '<i class="bi bi-check-lg"></i> Guardar';
+                })
+                .catch(function() {
+                    modalError.textContent = 'Error de conexi&oacute;n al crear cliente';
+                    modalError.style.display = '';
+                    modalGuardar.disabled = false;
+                    modalGuardar.innerHTML = '<i class="bi bi-check-lg"></i> Guardar';
+                });
+            });
+
+            // === Modal Modificar Ingredientes ===
+            var modalIng = document.getElementById('modal-ingredientes');
+            var modalIngList = document.getElementById('modal-ing-list');
+            var modalIngTitle = document.getElementById('modal-ing-title');
+            var modalIngAdd = document.getElementById('modal-ing-add');
+            var modalIngCancel = document.getElementById('modal-ing-cancel');
+            var modalIngClose = document.getElementById('modal-ing-close');
+            var pendingIngIdx = -1;
+
+            function cerrarModalIng() {
+                modalIng.style.display = 'none';
+                pendingIngIdx = -1;
+            }
+
+            modalIngCancel.addEventListener('click', cerrarModalIng);
+            modalIngClose.addEventListener('click', cerrarModalIng);
+            modalIng.addEventListener('click', function(e) {
+                if (e.target === modalIng) cerrarModalIng();
+            });
+
+            function mostrarModalIngredientes(item, idx) {
+                pendingIngIdx = idx;
+                modalIngTitle.textContent = item.nombre;
+                var comentarioInput = document.getElementById('modal-ing-comentario');
+                comentarioInput.value = item.adicionales || '';
+                var ingredientes = recetasIngredientes[item.id];
+                var seccionReceta = document.getElementById('modal-ing-section-receta');
+                if (ingredientes && ingredientes.length > 0) {
+                    seccionReceta.style.display = '';
+                    var excluidos = item.ingredientesExcluidos || [];
+                    modalIngList.innerHTML = ingredientes.map(function(ing) {
+                        var checked = excluidos.indexOf(ing.id) === -1;
+                        return '<label class="sd-ing-row">' +
+                            '<input type="checkbox" class="sd-ing-check" data-ing-id="' + ing.id + '" ' + (checked ? 'checked' : '') + ' />' +
+                            '<span class="sd-ing-name">' + ing.nombre + '</span>' +
+                            '<span class="sd-ing-unidad">' + (ing.unidad || '') + '</span>' +
+                            '</label>';
+                    }).join('');
+                } else {
+                    seccionReceta.style.display = 'none';
+                }
+                modalIng.style.display = '';
+                setTimeout(function() { comentarioInput.focus(); }, 100);
+            }
+
+            modalIngAdd.addEventListener('click', function() {
+                if (pendingIngIdx < 0 || pendingIngIdx >= cart.length) return;
+                var comentarioInput = document.getElementById('modal-ing-comentario');
+                cart[pendingIngIdx].adicionales = comentarioInput.value.trim();
+                var checks = modalIngList.querySelectorAll('.sd-ing-check');
+                var excluidos = [];
+                checks.forEach(function(cb) {
+                    if (!cb.checked) excluidos.push(parseInt(cb.dataset.ingId));
+                });
+                var modificaciones = '';
+                if (excluidos.length > 0) {
+                    var excluidosNombres = [];
+                    checks.forEach(function(cb) {
+                        if (!cb.checked) {
+                            excluidosNombres.push(cb.parentElement.querySelector('.sd-ing-name').textContent);
+                        }
+                    });
+                    modificaciones = 'Sin ' + excluidosNombres.join(', sin ');
+                }
+                cart[pendingIngIdx].modificaciones = modificaciones;
+                cart[pendingIngIdx].ingredientesExcluidos = excluidos;
+                actualizarCarrito();
+                cerrarModalIng();
+            });
+
+            pagoBtns.addEventListener('click', function(e) {
+                var btn = e.target.closest('.sd-pos-pago-card');
+                if (!btn) return;
+                pagoBtns.querySelectorAll('.sd-pos-pago-card').forEach(function(b) {
+                    b.classList.remove('sd-pos-pago-card--active');
+                });
+                btn.classList.add('sd-pos-pago-card--active');
+                selectedMetodo = btn.dataset.metodo;
+                metodoPagoInput.value = selectedMetodo;
+                actualizarPagoDetail();
+                var tab = getActiveTab();
+                if (tab) {
+                    tab.metodoPago = selectedMetodo;
+                    scheduleSync();
+                }
+            });
+
+            document.getElementById('venta-form').addEventListener('submit', function(e) {
+                if (cart.length === 0) {
+                    alert('Agrega al menos un producto al carrito');
+                    e.preventDefault();
+                    return;
+                }
+                if (!selectedMetodo) {
+                    alert('Selecciona un método de pago');
+                    e.preventDefault();
+                    return;
+                }
+                var total = getTotal();
+                var ef = parseFloat(document.getElementById('input-recibido-efectivo')?.value) || 0;
+                var tr = parseFloat(document.getElementById('input-recibido-transferencia')?.value) || 0;
+                if (selectedMetodo === 'EFECTIVO' && ef < total) {
+                    alert('El monto recibido debe cubrir el total');
+                    e.preventDefault();
+                    return;
+                }
+                if (selectedMetodo === 'TRANSFERENCIA' && tr < total) {
+                    alert('El monto de transferencia debe cubrir el total');
+                    e.preventDefault();
+                    return;
+                }
+                if (selectedMetodo === 'MIXTO' && (ef + tr) < total) {
+                    alert('La suma de efectivo y transferencia debe cubrir el total');
+                    e.preventDefault();
+                    return;
+                }
+                capturarEstadoTab();
+                updateSuspendidaIdInput();
+                btnPagar.disabled = true;
+                btnPagar.innerHTML = '<i class="bi bi-hourglass-split"></i> Procesando...';
+            });
+
+            // Para llevar toggle
+            if (paraLlevarInput) {
+                paraLlevarInput.addEventListener('change', function() {
+                    var tab = getActiveTab();
+                    if (tab) {
+                        tab.paraLlevar = this.checked;
+                        scheduleSync();
+                    }
+                });
+            }
+
+            // Nueva orden button
+            btnNuevaOrden.addEventListener('click', nuevaOrden);
+
+            // Flush sync before leaving the page
+            window.addEventListener('beforeunload', function() {
+                if (syncTimer) { clearTimeout(syncTimer); syncTimer = null; }
+                capturarEstadoTab();
+                var tab = getActiveTab();
+                if (tab) {
+                    var body = {
+                        id: tab.id,
+                        etiqueta: tab.etiqueta,
+                        itemsJson: JSON.stringify(tab.cart || []),
+                        clienteId: tab.clienteId,
+                        metodoPago: tab.metodoPago,
+                        recibidoEfectivo: tab.recibidoEfectivo || 0,
+                        recibidoTransferencia: tab.recibidoTransferencia || 0,
+                        paraLlevar: tab.paraLlevar || false,
+                        ordenTab: tab.ordenTab
+                    };
+                    if (navigator.sendBeacon) {
+                        navigator.sendBeacon('/api/v1/ventas-suspendidas',
+                            new Blob([JSON.stringify(body)], { type: 'application/json' }));
+                    }
+                }
+            });
+
+            // Initialize tabs from backend (or create first one)
+            initTabs();
+
+            // Fade-in animation
+            var els = document.querySelectorAll('.sd-fade');
+            els.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 100 * i);
+            });
+        });
+    </script>
+    </div>
+</div>
+</body>
+</html>

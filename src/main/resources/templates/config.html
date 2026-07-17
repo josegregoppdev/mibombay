@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header">
+        <div>
+            <h1 class="sd-page-title">Personalizar</h1>
+            <p class="sd-page-desc">Elige el tema visual y la tipograf&iacute;a del sistema</p>
+            <div class="sd-title-accent"></div>
+        </div>
+    </div>
+
+    <div class="sd-config-grid">
+        <!-- Tema -->
+        <div class="sd-config-card sd-fade sd-fade--2">
+            <div class="sd-config-card-header">
+                <i class="bi bi-palette"></i>
+                <div>
+                    <h3>Tema del sistema</h3>
+                    <p>Cada tema define la paleta de colores completa del sistema</p>
+                </div>
+            </div>
+            <form th:action="@{/config/guardar}" method="post" id="tema-form">
+                <input type="hidden" name="fuente" th:value="${estiloConfig.fuente}" id="fuente-hidden" />
+                <input type="hidden" name="tamanoFuente" th:value="${estiloConfig.tamanoFuente}" id="tamano-hidden" />
+                <div class="sd-tema-grid">
+                    <label th:each="entry : ${temasDisponibles}" class="sd-tema-card"
+                           th:classappend="${estiloConfig.tema == entry.key} ? 'sd-tema-card--selected' : ''"
+                           th:attr="data-tema=${entry.key}">
+                        <input type="radio" name="tema" class="sd-radio-hidden"
+                               th:value="${entry.key}" th:checked="${estiloConfig.tema == entry.key}" />
+                        <div class="sd-tema-preview" th:classappend="'sd-tema-preview--' + ${#strings.toLowerCase(entry.key)}">
+                            <div class="sd-tema-preview-sidebar"></div>
+                            <div class="sd-tema-preview-main">
+                                <div class="sd-tema-preview-bar"></div>
+                                <div class="sd-tema-preview-cards">
+                                    <div></div>
+                                    <div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sd-tema-info">
+                            <span class="sd-tema-name" th:text="${entry.value}">Oscuro</span>
+                            <span th:if="${estiloConfig.tema == entry.key}" class="sd-tema-check">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </span>
+                        </div>
+                        <div class="sd-tema-desc">
+                            <span th:if="${entry.key == 'OSCURO'}">Fondo oscuro, texto claro, estilo moderno premium</span>
+                            <span th:if="${entry.key == 'TIERRA'}">Tonos tierra medios, c&aacute;lido y acogedor</span>
+                            <span th:if="${entry.key == 'CLARO'}">Fondo claro, cl&aacute;sico y luminoso</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="sd-form-actions" style="margin-top:1.5rem;">
+                    <button type="submit" class="sd-btn">
+                        <i class="bi bi-check-lg"></i> Guardar tema
+                    </button>
+                    <button type="submit" form="resetForm" class="sd-btn sd-btn--outline">
+                        <i class="bi bi-arrow-counterclockwise"></i> Restablecer a Oscuro
+                    </button>
+                </div>
+            </form>
+            <form id="resetForm" th:action="@{/config/restablecer}" method="post"></form>
+        </div>
+
+        <!-- Tipografía y Tamaño -->
+        <div class="sd-config-card sd-fade sd-fade--3">
+            <div class="sd-config-card-header">
+                <i class="bi bi-fonts"></i>
+                <div>
+                    <h3>Tipograf&iacute;a</h3>
+                    <p>Elige la familia y el tama&ntilde;o de letra</p>
+                </div>
+            </div>
+            <form th:action="@{/config/guardar}" method="post">
+                <input type="hidden" name="tema" th:value="${estiloConfig.tema}" />
+
+                <div class="sd-font-selector">
+                    <label class="sd-font-label">Familia tipogr&aacute;fica</label>
+                    <div class="sd-font-options">
+                        <label th:each="entry : ${fontOptions}" class="sd-font-card"
+                               th:classappend="${estiloConfig.fuente == entry.key} ? 'sd-font-card--selected' : ''">
+                            <input type="radio" name="fuente" class="sd-radio-hidden"
+                                   th:value="${entry.key}" th:checked="${estiloConfig.fuente == entry.key}" />
+                            <div class="sd-font-card-content">
+                                <span class="sd-font-card-name" th:text="${entry.value}"></span>
+                                <span class="sd-font-card-preview">Aa Bb 123 — Sistema Restaurante</span>
+                            </div>
+                            <span th:if="${estiloConfig.fuente == entry.key}" class="sd-font-check">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="sd-form-divider"></div>
+
+                <label class="sd-font-label">Tama&ntilde;o de letra</label>
+                <div class="sd-tamano-grid">
+                    <label th:each="entry : ${tamanoOptions}" class="sd-tamano-card"
+                           th:classappend="${estiloConfig.tamanoFuente == entry.key} ? 'sd-tamano-card--selected' : ''">
+                        <input type="radio" name="tamanoFuente" class="sd-radio-hidden"
+                               th:value="${entry.key}" th:checked="${estiloConfig.tamanoFuente == entry.key}" />
+                        <span class="sd-tamano-preview" th:classappend="'sd-tamano-preview--' + ${entry.key}">Aa</span>
+                        <span class="sd-tamano-name" th:text="${entry.value}">Grande</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="sd-btn" style="margin-top:1rem;">
+                    <i class="bi bi-check-lg"></i> Guardar tipograf&iacute;a
+                </button>
+            </form>
+        </div>
+
+        <!-- Info empresa -->
+        <div class="sd-config-card sd-fade sd-fade--4">
+            <div class="sd-config-card-header">
+                <i class="bi bi-info-circle"></i>
+                <div>
+                    <h3>Informaci&oacute;n</h3>
+                    <p>Datos registrados de tu empresa</p>
+                </div>
+            </div>
+            <div class="sd-config-info">
+                <div class="sd-config-info-row">
+                    <span class="sd-config-info-label">Nombre</span>
+                    <span class="sd-config-info-value" th:text="${empresaConfig != null ? empresaConfig.nombre : '—'}">—</span>
+                </div>
+                <div class="sd-config-info-row">
+                    <span class="sd-config-info-label">Subdominio</span>
+                    <span class="sd-config-info-value" th:text="${empresaConfig != null ? empresaConfig.subdominio : '—'}">—</span>
+                </div>
+                <div class="sd-config-info-row">
+                    <span class="sd-config-info-label">Tema actual</span>
+                    <span class="sd-config-info-value sd-text-accent" th:text="${temasDisponibles[estiloConfig.tema] ?: 'Oscuro'}">Oscuro</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.sd-tema-card').forEach(function(el) {
+            el.addEventListener('click', function() {
+                var radio = this.querySelector('input[type="radio"]');
+                if (!radio) return;
+                radio.checked = true;
+                document.querySelectorAll('.sd-tema-card').forEach(function(c) {
+                    c.classList.remove('sd-tema-card--selected');
+                });
+                this.classList.add('sd-tema-card--selected');
+            });
+        });
+        document.querySelectorAll('.sd-font-card').forEach(function(el) {
+            el.addEventListener('click', function() {
+                var radio = this.querySelector('input[type="radio"]');
+                if (!radio) return;
+                radio.checked = true;
+                document.querySelectorAll('.sd-font-card').forEach(function(c) {
+                    c.classList.remove('sd-font-card--selected');
+                });
+                this.classList.add('sd-font-card--selected');
+            });
+        });
+        document.querySelectorAll('.sd-font-card input[name="fuente"]').forEach(function(radio) {
+            radio.addEventListener('change', function() {
+                var h = document.getElementById('fuente-hidden');
+                if (h) h.value = this.value;
+            });
+        });
+        document.querySelectorAll('.sd-tamano-card').forEach(function(el) {
+            el.addEventListener('click', function() {
+                var radio = this.querySelector('input[type="radio"]');
+                if (!radio) return;
+                radio.checked = true;
+                document.querySelectorAll('.sd-tamano-card').forEach(function(c) {
+                    c.classList.remove('sd-tamano-card--selected');
+                });
+                this.classList.add('sd-tamano-card--selected');
+                var h = document.getElementById('tamano-hidden');
+                if (h) h.value = radio.value;
+            });
+        });
+    </script>
+
+    <style>
+    .sd-tema-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+    .sd-tema-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1.25rem 1rem;
+        border-radius: 14px;
+        background: var(--content-surface-2, #19191f);
+        border: 2px solid var(--content-border, rgba(255,255,255,0.05));
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .sd-tema-card:hover {
+        border-color: rgba(var(--accent-rgb, 212, 168, 83), 0.3);
+        background: var(--content-surface-hover, #1e1e26);
+    }
+    .sd-tema-card--selected {
+        border-color: var(--accent, #d4a853) !important;
+        background: rgba(var(--accent-rgb, 212, 168, 83), 0.06) !important;
+        box-shadow: 0 0 0 1px rgba(var(--accent-rgb, 212, 168, 83), 0.2);
+    }
+    .sd-tema-preview {
+        width: 100%;
+        height: 80px;
+        border-radius: 10px;
+        display: flex;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.06);
+    }
+    .sd-tema-preview-sidebar { width: 30%; height: 100%; }
+    .sd-tema-preview-main { flex: 1; padding: 6px; display: flex; flex-direction: column; gap: 4px; }
+    .sd-tema-preview-bar { height: 10px; border-radius: 3px; }
+    .sd-tema-preview-cards { display: flex; gap: 4px; flex: 1; }
+    .sd-tema-preview-cards div { flex: 1; border-radius: 3px; }
+    .sd-tema-preview--oscuro .sd-tema-preview-sidebar { background: #0c0c10; }
+    .sd-tema-preview--oscuro .sd-tema-preview-main { background: #0b0b0f; }
+    .sd-tema-preview--oscuro .sd-tema-preview-bar { background: #131317; }
+    .sd-tema-preview--oscuro .sd-tema-preview-cards div { background: #131317; }
+    .sd-tema-preview--tierra .sd-tema-preview-sidebar { background: #14100c; }
+    .sd-tema-preview--tierra .sd-tema-preview-main { background: #1c1814; }
+    .sd-tema-preview--tierra .sd-tema-preview-bar { background: #24201c; }
+    .sd-tema-preview--tierra .sd-tema-preview-cards div { background: #24201c; }
+    .sd-tema-preview--claro .sd-tema-preview-sidebar { background: #1a1410; }
+    .sd-tema-preview--claro .sd-tema-preview-main { background: #f5f0e8; }
+    .sd-tema-preview--claro .sd-tema-preview-bar { background: #ffffff; }
+    .sd-tema-preview--claro .sd-tema-preview-cards div { background: #ffffff; }
+    .sd-tema-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+    }
+    .sd-tema-name {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--content-text, #f0efed);
+    }
+    .sd-tema-check {
+        margin-left: auto;
+        color: var(--accent, #d4a853);
+        font-size: 1.1rem;
+    }
+    .sd-tema-desc {
+        font-size: 0.72rem;
+        color: var(--content-text-muted, #6a6865);
+        text-align: center;
+        line-height: 1.3;
+    }
+    .sd-tamano-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+    }
+    .sd-tamano-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 1rem 0.5rem;
+        border-radius: 12px;
+        background: var(--content-surface-2, #19191f);
+        border: 2px solid var(--content-border, rgba(255,255,255,0.05));
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .sd-tamano-card:hover {
+        border-color: rgba(var(--accent-rgb, 212, 168, 83), 0.3);
+    }
+    .sd-tamano-card--selected {
+        border-color: var(--accent, #d4a853) !important;
+        background: rgba(var(--accent-rgb, 212, 168, 83), 0.06) !important;
+    }
+    .sd-tamano-preview {
+        font-weight: 700;
+        color: var(--content-text, #f0efed);
+    }
+    .sd-tamano-preview--normal { font-size: 1rem; }
+    .sd-tamano-preview--grande { font-size: 1.125rem; }
+    .sd-tamano-preview--extra-grande { font-size: 1.25rem; }
+    .sd-tamano-name {
+        font-size: 0.78rem;
+        color: var(--content-text-muted, #6a6865);
+    }
+    @media (max-width: 768px) {
+        .sd-tema-grid { grid-template-columns: 1fr; }
+        .sd-tamano-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    </style>
+</div>
+</body>
+</html>

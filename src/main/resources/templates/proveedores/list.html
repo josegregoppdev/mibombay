@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title">Proveedores</h1>
+            <p class="sd-page-desc">Gesti&oacute;n de proveedores del restaurante</p>
+            <div class="sd-title-accent"></div>
+        </div>
+        <a th:href="@{/proveedores/nuevo}" class="sd-btn">
+            <i class="bi bi-plus-circle"></i> Nuevo Proveedor
+        </a>
+    </div>
+
+    <div class="sd-filter-bar sd-fade sd-fade--2">
+        <form th:action="@{/proveedores}" method="get" class="sd-filter-form">
+            <div class="sd-filter-fields">
+                <div class="sd-filter-field">
+                    <label for="filtroBusqueda" class="sd-filter-label">
+                        <i class="bi bi-search"></i>
+                    </label>
+                    <input type="text" id="filtroBusqueda" name="busqueda" class="sd-filter-input"
+                           placeholder="Buscar por raz&oacute;n social o contacto..."
+                           th:value="${filtroBusqueda}">
+                </div>
+                <button type="submit" class="sd-btn sd-btn--sm">
+                    <i class="bi bi-funnel"></i> Filtrar
+                </button>
+                <a th:href="@{/proveedores}" class="sd-btn sd-btn--sm sd-btn--outline">
+                    <i class="bi bi-x-lg"></i> Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="sd-list-card sd-fade sd-fade--3">
+        <div class="sd-list-card-glow"></div>
+
+        <div class="sa-table-wrapper">
+            <table class="sa-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Raz&oacute;n Social</th>
+                        <th>Contacto</th>
+                        <th>Tel&eacute;fono</th>
+                        <th>Correo</th>
+                        <th class="sa-cell-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="p : ${page.content}" class="sd-table-row">
+                        <td>
+                            <div class="sd-avatar" th:text="${#strings.substring(p.razonSocial, 0, 2)}">PR</div>
+                        </td>
+                        <td>
+                            <div class="sd-user-name" th:text="${p.razonSocial}">Raz&oacute;n Social</div>
+                        </td>
+                        <td>
+                            <span th:if="${p.contacto != null}" th:text="${p.contacto}">Contacto</span>
+                            <span th:unless="${p.contacto != null}" class="sd-user-noinfo">&mdash;</span>
+                        </td>
+                        <td>
+                            <span th:if="${p.telefono != null}" th:text="${p.telefono}">0999999999</span>
+                            <span th:unless="${p.telefono != null}" class="sd-user-noinfo">&mdash;</span>
+                        </td>
+                        <td>
+                            <span th:if="${p.correo != null}" class="sd-user-email" th:text="${p.correo}">correo@ejemplo.com</span>
+                            <span th:unless="${p.correo != null}" class="sd-user-noinfo">&mdash;</span>
+                        </td>
+                        <td>
+                            <div class="sa-actions sa-cell-center">
+                                <a th:href="@{/proveedores/{id}/editar(id=${p.id})}" class="sa-btn-icon sa-btn-icon--edit" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form th:action="@{/proveedores/{id}/eliminar(id=${p.id})}" method="post"
+                                      style="display:inline"
+                                      onsubmit="return confirm('&iquest;Eliminar este proveedor?')">
+                                    <button type="submit" class="sa-btn-icon sa-btn-icon--delete" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(page.content)}">
+                        <td colspan="6">
+                            <div class="sd-empty">
+                                <div class="sd-empty-icon">
+                                    <i class="bi bi-truck"></i>
+                                </div>
+                                <h3>No hay proveedores</h3>
+                                <p>A&uacute;n no se han registrado proveedores.</p>
+                                <a th:href="@{/proveedores/nuevo}" class="sd-btn">
+                                    <i class="bi bi-plus-circle"></i> Crear primer proveedor
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="sd-pagination" th:if="${page != null and page.totalPages > 1}">
+        <div class="sd-pagination-info">
+            P&aacute;gina <span th:text="${page.number + 1}">1</span> de <span th:text="${page.totalPages}">1</span>
+            (<span th:text="${page.totalElements}">0</span> resultados)
+        </div>
+        <div class="sd-pagination-links">
+            <a th:href="@{/proveedores(busqueda=${filtroBusqueda}, page=${page.number - 1})}"
+               class="sd-page-link"
+               th:classappend="${page.first} ? 'sd-page-link--disabled' : ''">
+                <i class="bi bi-chevron-left"></i> Anterior
+            </a>
+            <span th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}">
+                <a th:href="@{/proveedores(busqueda=${filtroBusqueda}, page=${i})}"
+                   class="sd-page-link"
+                   th:classappend="${i == page.number} ? 'sd-page-link--active' : ''"
+                   th:text="${i + 1}">1</a>
+            </span>
+            <a th:href="@{/proveedores(busqueda=${filtroBusqueda}, page=${page.number + 1})}"
+               class="sd-page-link"
+               th:classappend="${page.last} ? 'sd-page-link--disabled' : ''">
+                Siguiente <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var els = document.querySelectorAll('.sd-fade');
+            els.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 100 * i);
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

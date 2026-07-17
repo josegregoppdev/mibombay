@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Superadmin — Mi Bombay</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:opsz,wght@14..32,300;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="superadmin-body">
+
+<div class="bg-grain"></div>
+<div class="bg-glow"></div>
+<div class="bg-glow-2"></div>
+
+<!-- NAVBAR -->
+<nav class="sa-navbar">
+    <div class="sa-navbar-inner">
+        <a href="/superadmin/dashboard" class="sa-brand">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            <span>Panel Superadmin</span>
+        </a>
+        <div class="sa-navbar-end">
+            <span class="sa-user-name" sec:authentication="principal.nombre"></span>
+            <form th:action="@{/superadmin/logout}" method="post" class="m-0">
+                <button type="submit" class="sa-btn-logout">
+                    <i class="bi bi-box-arrow-right"></i> Salir
+                </button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<!-- MAIN -->
+<div class="sa-main">
+
+    <!-- HEADER -->
+    <div class="sa-header">
+        <div>
+            <h1 class="sa-title">Panel de Control</h1>
+            <p class="sa-subtitle">Gesti&oacute;n global de empresas y supervisi&oacute;n del sistema</p>
+        </div>
+        <a th:href="@{/superadmin/empresas/nueva}" class="sa-btn sa-btn-primary">
+            <i class="bi bi-plus-lg"></i> Nueva Empresa
+        </a>
+    </div>
+
+    <!-- STATS -->
+    <div class="sa-stats">
+        <div class="sa-stat-card sa-stat-card--total">
+            <div class="sa-stat-icon"><i class="bi bi-building"></i></div>
+            <div class="sa-stat-body">
+                <span class="sa-stat-value" th:text="${totalEmpresas}">0</span>
+                <span class="sa-stat-label">Total Empresas</span>
+            </div>
+        </div>
+        <div class="sa-stat-card sa-stat-card--active">
+            <div class="sa-stat-icon"><i class="bi bi-check-circle"></i></div>
+            <div class="sa-stat-body">
+                <span class="sa-stat-value" th:text="${totalActivas}">0</span>
+                <span class="sa-stat-label">Activas</span>
+            </div>
+        </div>
+        <div class="sa-stat-card sa-stat-card--inactive">
+            <div class="sa-stat-icon"><i class="bi bi-pause-circle"></i></div>
+            <div class="sa-stat-body">
+                <span class="sa-stat-value" th:text="${totalInactivas}">0</span>
+                <span class="sa-stat-label">Inactivas</span>
+            </div>
+        </div>
+        <div class="sa-stat-card sa-stat-card--users">
+            <div class="sa-stat-icon"><i class="bi bi-people"></i></div>
+            <div class="sa-stat-body">
+                <span class="sa-stat-value" th:text="${totalUsuarios}">0</span>
+                <span class="sa-stat-label">Usuarios del Sistema</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div th:if="${success}" class="sa-alert sa-alert--success">
+        <i class="bi bi-check-circle-fill"></i>
+        <span th:text="${success}"></span>
+    </div>
+    <div th:if="${error}" class="sa-alert sa-alert--danger">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span th:text="${error}"></span>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="sa-search-bar">
+        <i class="bi bi-search sa-search-icon"></i>
+        <input type="text" id="saSearch" class="sa-search-input" placeholder="Buscar empresa por nombre, subdominio o encargado&hellip;">
+    </div>
+
+    <!-- TABLE -->
+    <div class="sa-table-wrapper">
+        <table class="sa-table" id="saTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Empresa</th>
+                    <th>Subdominio</th>
+                    <th>Encargado</th>
+                    <th>Usuarios</th>
+                    <th>Registro</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="emp : ${empresas}" class="sa-row">
+                    <td class="sa-cell-id" th:text="${emp.id}">1</td>
+                    <td>
+                        <div class="sa-cell-empresa">
+                            <div class="sa-empresa-avatar" th:text="${#strings.substring(emp.nombre, 0, 2)}">MB</div>
+                            <div>
+                                <div class="sa-empresa-nombre" th:text="${emp.nombre}">Mi Bombay</div>
+                                <div class="sa-empresa-email" th:text="${emp.email ?: '—'}">—</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><code class="sa-subdominio" th:text="${emp.subdominio}">demo</code></td>
+                    <td th:text="${emp.nombreEncargado ?: '—'}">—</td>
+                    <td class="sa-cell-center">
+                        <span class="sa-badge sa-badge--users" th:text="${usuariosPorEmpresa.get(emp.id)}">0</span>
+                    </td>
+                    <td class="sa-cell-date" th:text="${#temporals.format(emp.fechaCreacion, 'dd/MM/yyyy')}">—</td>
+                    <td>
+                        <span th:if="${emp.activo}" class="sa-badge sa-badge--active">
+                            <span class="sa-dot sa-dot--green"></span> Activo
+                        </span>
+                        <span th:unless="${emp.activo}" class="sa-badge sa-badge--inactive">
+                            <span class="sa-dot sa-dot--red"></span> Inactivo
+                        </span>
+                    </td>
+                    <td>
+                        <div class="sa-actions">
+                            <a th:href="@{/superadmin/empresas/{id}/editar(id=${emp.id})}" class="sa-btn-icon sa-btn-icon--edit" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form th:if="${emp.activo}" th:action="@{/superadmin/empresas/{id}/desactivar(id=${emp.id})}"
+                                  method="post" style="display:inline" class="sa-form-action">
+                                <button type="button" class="sa-btn-icon sa-btn-icon--block" title="Desactivar"
+                                        onclick="confirmAction(this, 'desactivar')">
+                                    <i class="bi bi-pause-fill"></i>
+                                </button>
+                            </form>
+                            <form th:unless="${emp.activo}" th:action="@{/superadmin/empresas/{id}/activar(id=${emp.id})}"
+                                  method="post" style="display:inline" class="sa-form-action">
+                                <button type="button" class="sa-btn-icon sa-btn-icon--activate" title="Activar"
+                                        onclick="confirmAction(this, 'activar')">
+                                    <i class="bi bi-play-fill"></i>
+                                </button>
+                            </form>
+                            <form th:action="@{/superadmin/empresas/{id}/eliminar(id=${emp.id})}"
+                                  method="post" style="display:inline" class="sa-form-action">
+                                <button type="button" class="sa-btn-icon sa-btn-icon--delete" title="Eliminar"
+                                        onclick="confirmAction(this, 'eliminar')">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(empresas)}">
+                    <td colspan="8" class="sa-empty">
+                        <i class="bi bi-building-slash"></i>
+                        <span>No hay empresas registradas</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="sa-modal-overlay" id="saModal">
+    <div class="sa-modal">
+        <div class="sa-modal-icon" id="saModalIcon">
+            <i class="bi bi-exclamation-triangle"></i>
+        </div>
+        <h3 class="sa-modal-title" id="saModalTitle">&iquest;Confirmar acci&oacute;n?</h3>
+        <p class="sa-modal-desc" id="saModalDesc">Esta acci&oacute;n cambiar&aacute; el estado de la empresa.</p>
+        <div class="sa-modal-actions">
+            <button class="sa-btn sa-btn-ghost" onclick="closeModal()">Cancelar</button>
+            <button class="sa-btn sa-btn-danger" id="saModalConfirm">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/app.js}"></script>
+<script>
+// --- Search filter ---
+const searchInput = document.getElementById('saSearch');
+const table = document.getElementById('saTable');
+searchInput?.addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    const rows = table.querySelectorAll('tbody tr.sa-row');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(q) ? '' : 'none';
+    });
+});
+
+// --- Confirmation modal ---
+let pendingForm = null;
+
+function confirmAction(btn, action) {
+    pendingForm = btn.closest('.sa-form-action');
+    const empresaName = btn.closest('tr').querySelector('.sa-empresa-nombre')?.textContent || 'esta empresa';
+    const modal = document.getElementById('saModal');
+    const title = document.getElementById('saModalTitle');
+    const desc = document.getElementById('saModalDesc');
+    const icon = document.getElementById('saModalIcon');
+    const confirmBtn = document.getElementById('saModalConfirm');
+
+    if (action === 'eliminar') {
+        title.textContent = 'Eliminar empresa';
+        desc.textContent = `\u00bfEliminar "${empresaName}"? Esta acci\u00f3n la desactivar\u00e1 de forma permanente.`;
+        icon.innerHTML = '<i class="bi bi-trash3"></i>';
+        confirmBtn.className = 'sa-btn sa-btn-danger';
+    } else if (action === 'desactivar') {
+        title.textContent = 'Desactivar empresa';
+        desc.textContent = `\u00bfDesactivar "${empresaName}"? Los usuarios no podr\u00e1n acceder hasta que se reactive.`;
+        icon.innerHTML = '<i class="bi bi-pause-circle"></i>';
+        confirmBtn.className = 'sa-btn sa-btn-warning';
+    } else {
+        title.textContent = 'Activar empresa';
+        desc.textContent = `\u00bfActivar "${empresaName}"? Los usuarios podr\u00e1n acceder nuevamente.`;
+        icon.innerHTML = '<i class="bi bi-play-circle"></i>';
+        confirmBtn.className = 'sa-btn sa-btn-success';
+    }
+
+    modal.classList.add('sa-modal--open');
+}
+
+document.getElementById('saModalConfirm')?.addEventListener('click', function() {
+    if (pendingForm) {
+        pendingForm.submit();
+    }
+    closeModal();
+});
+
+function closeModal() {
+    document.getElementById('saModal').classList.remove('sa-modal--open');
+    pendingForm = null;
+}
+
+// Close modal on overlay click
+document.getElementById('saModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+// Close modal on Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+});
+
+// Stagger animation for stat cards
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.sa-stat-card');
+    cards.forEach((card, i) => {
+        card.style.setProperty('--sa-delay', (0.1 + i * 0.1) + 's');
+    });
+});
+</script>
+</body>
+</html>

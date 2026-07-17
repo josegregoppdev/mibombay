@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title">Historial de Cuadres de Caja</h1>
+            <p class="sd-page-desc">Registro de arqueos de efectivo realizados</p>
+            <div class="sd-title-accent"></div>
+        </div>
+        <div class="sd-page-actions">
+            <a th:href="@{/admin/cuadreCaja}" class="sd-btn">
+                <i class="bi bi-plus-lg"></i> Nuevo cuadre
+            </a>
+        </div>
+    </div>
+
+    <div class="sa-table-wrapper sd-fade sd-fade--2">
+        <table class="sa-table" th:if="${not #lists.isEmpty(cuadres)}">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Auditor</th>
+                    <th>Cajero</th>
+                    <th>Turno</th>
+                    <th style="text-align:right;">Total contado</th>
+                    <th style="text-align:right;">Total sistema</th>
+                    <th style="text-align:right;">Diferencia</th>
+                    <th style="text-align:center;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="c : ${cuadres}">
+                    <td th:text="${#temporals.format(c.fechaCreacion, 'dd/MM/yyyy HH:mm')}">15/06/2026 14:30</td>
+                    <td th:text="${c.auditor}">Auditor</td>
+                    <td th:text="${c.cajero}">Cajero</td>
+                    <td th:text="${c.turno}">Turno</td>
+                    <td style="text-align:right;font-weight:600;" th:text="'$' + ${#numbers.formatDecimal(c.totalContado, 1, 0)}">$0</td>
+                    <td style="text-align:right;" th:text="'$' + ${#numbers.formatDecimal(c.totalSistema, 1, 2)}">$0.00</td>
+                    <td style="text-align:right;font-weight:700;"
+                        th:classappend="${c.diferencia < 0} ? 'sd-diff-negative' : (${c.diferencia > 0} ? 'sd-diff-positive' : '')"
+                        th:text="${c.diferencia >= 0} ? '+' + ${#numbers.formatDecimal(c.diferencia, 1, 0)} : ${#numbers.formatDecimal(c.diferencia, 1, 0)}">$0</td>
+                    <td style="text-align:center;">
+                        <div style="display:flex;gap:0.4rem;justify-content:center;">
+                            <a th:href="@{/admin/cuadreCaja/{id}(id=${c.id})}" class="sa-btn-icon" title="Ver detalle">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a th:href="@{/admin/cuadreCaja/{id}/pdf(id=${c.id})}" class="sa-btn-icon" title="Reimprimir PDF">
+                                <i class="bi bi-file-pdf"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="sd-empty" th:if="${#lists.isEmpty(cuadres)}">
+            <div class="sd-empty-icon">
+                <i class="bi bi-journal-text"></i>
+            </div>
+            <h3>No hay cuadres de caja registrados</h3>
+            <p>Realiza un cuadre desde el formulario para verlo aqu&iacute;</p>
+            <a th:href="@{/admin/cuadreCaja}" class="sd-btn">
+                <i class="bi bi-plus-lg"></i> Nuevo cuadre
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var els = document.querySelectorAll('.sd-fade');
+            els.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 100 * i);
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

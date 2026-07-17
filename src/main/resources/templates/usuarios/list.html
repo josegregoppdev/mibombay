@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title">Usuarios</h1>
+            <p class="sd-page-desc">Gestiona los usuarios del sistema</p>
+            <div class="sd-title-accent"></div>
+        </div>
+        <a th:href="@{/usuarios/nuevo}" class="sd-btn">
+            <i class="bi bi-plus-circle"></i> Nuevo Usuario
+        </a>
+    </div>
+
+    <!-- Table card -->
+    <div class="sd-list-card sd-fade sd-fade--2">
+        <div class="sd-list-card-glow"></div>
+
+        <div class="sa-table-wrapper">
+            <table class="sa-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Usuario</th>
+                        <th>Username</th>
+                        <th>Contacto</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th class="sa-cell-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="usr, iter : ${usuarios}" class="sd-table-row">
+                        <td>
+                            <div class="sd-avatar" th:text="${#strings.substring(usr.nombre, 0, 2)}">MB</div>
+                        </td>
+                        <td>
+                            <div class="sd-user-name" th:text="${usr.nombre + ' ' + (usr.apellido ?: '')}">Nombre</div>
+                        </td>
+                        <td><span class="sd-user-username" th:text="${usr.username}">user</span></td>
+                        <td>
+                            <div class="sd-user-contact">
+                                <span th:if="${usr.email != null}" th:text="${usr.email}">email</span>
+                                <span th:if="${usr.telefono != null}" class="sd-user-phone" th:text="${usr.telefono}">tel</span>
+                                <span th:if="${usr.email == null and usr.telefono == null}" class="sd-user-noinfo">Sin contacto</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="sd-role-badge" th:classappend="${'sd-role-badge--' + usr.rol}" th:text="${usr.rol}">ADMIN</span>
+                        </td>
+                        <td>
+                            <span th:if="${usr.activo}" class="sa-badge sa-badge--active">
+                                <span class="sa-dot sa-dot--green"></span> Activo
+                            </span>
+                            <span th:unless="${usr.activo}" class="sa-badge sa-badge--inactive">
+                                <span class="sa-dot sa-dot--red"></span> Inactivo
+                            </span>
+                        </td>
+                        <td>
+                            <div class="sa-actions sa-cell-center">
+                                <a th:href="@{/usuarios/{id}/editar(id=${usr.id})}" class="sa-btn-icon sa-btn-icon--edit" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form th:action="@{/usuarios/{id}/eliminar(id=${usr.id})}" method="post"
+                                      style="display:inline"
+                                      onsubmit="return confirm('&iquest;Eliminar este usuario?')">
+                                    <button type="submit" class="sa-btn-icon sa-btn-icon--delete" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                                <form th:if="${!usr.activo}" th:action="@{/usuarios/{id}/activar(id=${usr.id})}" method="post"
+                                      style="display:inline">
+                                    <button type="submit" class="sa-btn-icon sa-btn-icon--activate" title="Activar">
+                                        <i class="bi bi-check-circle"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(usuarios)}">
+                        <td colspan="7">
+                            <div class="sd-empty">
+                                <div class="sd-empty-icon">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                                <h3>No hay usuarios</h3>
+                                <p>A&uacute;n no se han registrado usuarios en esta empresa.</p>
+                                <a th:href="@{/usuarios/nuevo}" class="sd-btn">
+                                    <i class="bi bi-plus-circle"></i> Crear primer usuario
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var els = document.querySelectorAll('.sd-fade');
+            els.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 100 * i);
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

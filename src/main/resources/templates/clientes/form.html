@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title" th:text="${cliente.id != null} ? 'Editar Cliente' : 'Nuevo Cliente'"></h1>
+            <p class="sd-page-desc" th:text="${cliente.id != null} ? 'Modifica los datos del cliente' : 'Registra un nuevo cliente en el sistema'"></p>
+            <div class="sd-title-accent"></div>
+        </div>
+    </div>
+
+    <div class="sd-form-card sd-fade sd-fade--2">
+        <div class="sd-form-card-glow"></div>
+        <div class="sd-form-card-header">
+            <div class="sd-form-card-icon">
+                <i class="bi bi-person-badge"></i>
+            </div>
+            <div>
+                <h3 th:text="${cliente.id != null} ? 'Informaci&oacute;n del cliente' : 'Datos del nuevo cliente'"></h3>
+                <p>Los campos marcados con * son obligatorios</p>
+            </div>
+        </div>
+
+        <form th:action="${cliente.id != null} ? @{/clientes/{id}/actualizar(id=${cliente.id})} : @{/clientes/guardar}"
+              method="post" th:object="${cliente}">
+
+            <div class="sd-form-grid">
+                <div class="sd-form-field sd-fade sd-fade--3">
+                    <label for="nombres" class="sd-form-label">
+                        <i class="bi bi-person"></i> Nombres *
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="text" id="nombres" th:field="*{nombres}" class="sd-form-input" required placeholder="Ej: Juan Carlos">
+                    </div>
+                    <div th:if="${#fields.hasErrors('nombres')}" class="sd-form-error" th:errors="*{nombres}"></div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--4">
+                    <label for="dni" class="sd-form-label">
+                        <i class="bi bi-card-text"></i> DNI / C&eacute;dula *
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="text" id="dni" th:field="*{dni}" class="sd-form-input" required placeholder="Ej: 123456789">
+                    </div>
+                    <div th:if="${#fields.hasErrors('dni')}" class="sd-form-error" th:errors="*{dni}"></div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--5">
+                    <label for="apellidos" class="sd-form-label">
+                        <i class="bi bi-person"></i> Apellidos
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="text" id="apellidos" th:field="*{apellidos}" class="sd-form-input" placeholder="Ej: P&eacute;rez L&oacute;pez">
+                    </div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--6">
+                    <label for="telefono" class="sd-form-label">
+                        <i class="bi bi-telephone"></i> Tel&eacute;fono
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="text" id="telefono" th:field="*{telefono}" class="sd-form-input" placeholder="Ej: +57 300 123 4567">
+                    </div>
+                </div>
+
+                <div class="sd-form-field sd-fade sd-fade--7">
+                    <label for="correo" class="sd-form-label">
+                        <i class="bi bi-envelope"></i> Correo electr&oacute;nico
+                    </label>
+                    <div class="sd-input-wrap">
+                        <input type="email" id="correo" th:field="*{correo}" class="sd-form-input" placeholder="Ej: correo@ejemplo.com">
+                    </div>
+                    <div th:if="${#fields.hasErrors('correo')}" class="sd-form-error" th:errors="*{correo}"></div>
+                </div>
+
+                <div class="sd-form-field sd-form-field--full sd-fade sd-fade--8">
+                    <label for="direccion" class="sd-form-label">
+                        <i class="bi bi-geo-alt"></i> Direcci&oacute;n
+                    </label>
+                    <div class="sd-input-wrap">
+                        <textarea id="direccion" th:field="*{direccion}" class="sd-form-input sd-form-textarea" placeholder="Direcci&oacute;n de residencia o entrega" rows="2"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sd-form-divider"></div>
+
+            <div class="sd-form-actions sd-fade sd-fade--8">
+                <button type="submit" class="sd-btn">
+                    <i class="bi bi-check-lg"></i>
+                    <span th:text="${cliente.id != null} ? 'Actualizar cliente' : 'Crear cliente'"></span>
+                </button>
+                <a th:href="@{/clientes}" class="sd-btn sd-btn--outline">
+                    <i class="bi bi-x-lg"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var els = document.querySelectorAll('.sd-fade');
+            els.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 80 * i);
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

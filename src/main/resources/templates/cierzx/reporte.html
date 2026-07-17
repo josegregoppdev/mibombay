@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es"
+      th:replace="~{fragments/layout :: layout(template=~{::template})}">
+<body>
+<div th:fragment="template">
+    <div class="sd-page-header sd-fade sd-fade--1">
+        <div>
+            <h1 class="sd-page-title">Reporte X</h1>
+            <p class="sd-page-desc" th:text="'Resumen de ventas del ' + ${#temporals.format(reporte.fecha, 'dd ''de'' MMMM ''de'' yyyy')}">14 de junio de 2026</p>
+            <div class="sd-title-accent"></div>
+        </div>
+        <div class="sd-page-actions">
+            <a th:href="@{/cierzx}" class="sd-btn sd-btn--outline">
+                <i class="bi bi-arrow-clockwise"></i> Actualizar
+            </a>
+            <a th:href="@{/cierzx/pdf}" class="sd-btn">
+                <i class="bi bi-file-pdf"></i> PDF
+            </a>
+        </div>
+    </div>
+
+    <div class="sd-info-grid sd-fade sd-fade--2">
+        <div class="sd-info-card sd-info-card--accent">
+            <div class="sd-info-label">Ventas realizadas</div>
+            <div class="sd-info-value" style="font-size:2rem;" th:text="${reporte.cantidadVentas}">0</div>
+        </div>
+        <div class="sd-info-card">
+            <div class="sd-info-label">Total recaudado</div>
+            <div class="sd-info-value sd-info-value--accent" th:text="'$' + ${#numbers.formatDecimal(reporte.totalVentas, 1, 2)}">$0.00</div>
+        </div>
+        <div class="sd-info-card">
+            <div class="sd-info-label">Efectivo</div>
+            <div class="sd-info-value" th:text="'$' + ${#numbers.formatDecimal(reporte.totalEfectivo, 1, 2)}">$0.00</div>
+        </div>
+        <div class="sd-info-card">
+            <div class="sd-info-label">Transferencia</div>
+            <div class="sd-info-value" th:text="'$' + ${#numbers.formatDecimal(reporte.totalTransferencia, 1, 2)}">$0.00</div>
+        </div>
+    </div>
+
+    <div class="sd-list-card sd-fade sd-fade--3">
+        <div class="sd-list-card-glow"></div>
+        <div class="sd-list-card-header">
+            <div class="sd-list-card-title">
+                <i class="bi bi-info-circle"></i>
+                <span>Informaci&oacute;n del d&iacute;a</span>
+            </div>
+        </div>
+        <div class="sd-list-card-body" style="padding:1.25rem;">
+                <p class="sd-text-muted" style="font-size:0.9rem;margin:0;">
+                Este reporte muestra las ventas del d&iacute;a de hoy.
+                Los valores reflejan el total recaudado por cada medio de pago.
+            </p>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var els = document.querySelectorAll('.sd-fade');
+            els.forEach(function(el, i) {
+                setTimeout(function() {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 100 * i);
+            });
+        });
+    </script>
+</div>
+</body>
+</html>
