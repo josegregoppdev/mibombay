@@ -1,0 +1,15 @@
+# ============================================
+# application-dev.properties (PLANTILLA)
+# ============================================
+# Copia este archivo como application-dev.properties y completa los valores.
+# Este archivo NO se sube al repositorio (está en .gitignore).
+# ============================================
+
+# URL de conexión JDBC a MySQL
+spring.datasource.url=jdbc:mysql://localhost:3306/mibombay?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Guayaquil
+
+# Usuario de MySQL
+spring.datasource.username=root
+
+# Contraseña de MySQL (cámbiala por la tuya)
+spring.datasource.password=TU_PASSWORD_AQUI
