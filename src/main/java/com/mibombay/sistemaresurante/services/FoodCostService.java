@@ -4,6 +4,7 @@ import com.mibombay.sistemaresurante.DTO.*;
 import com.mibombay.sistemaresurante.models.*;
 import com.mibombay.sistemaresurante.models.enums.MovimientoTipo;
 import com.mibombay.sistemaresurante.repositories.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +48,7 @@ public class FoodCostService {
     // 1. MÉTODOS PÚBLICOS DE CÁLCULO (read-only)
     // ============================================================
 
+    @PreAuthorize("hasRole('ADMIN')")
     public FoodCostDiarioDTO calcularDiario(LocalDate fecha, Long empresaId) {
         LocalDateTime desde = fecha.atStartOfDay();
         LocalDateTime hasta = fecha.atTime(LocalTime.MAX);
@@ -164,12 +166,14 @@ public class FoodCostService {
                 .build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public List<FoodCostItemDTO> calcularPorItem(LocalDate fecha, Long empresaId) {
         LocalDateTime desde = fecha.atStartOfDay();
         LocalDateTime hasta = fecha.atTime(LocalTime.MAX);
         return calcularPorItemFromMovimientos(desde, hasta, empresaId);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public List<FoodCostItemDTO> calcularPorItemFromMovimientos(LocalDateTime desde, LocalDateTime hasta, Long empresaId) {
         Map<String, FoodCostItemDTO> itemMap = new LinkedHashMap<>();
 
@@ -294,6 +298,7 @@ public class FoodCostService {
         return resultado;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public ConsumoResumenDTO calcularResumenConsumo(LocalDate desde, LocalDate hasta, Long empresaId) {
         List<CostoComidaDiaria> registros = obtenerCostoComidaPorRango(empresaId, desde, hasta);
 
@@ -412,6 +417,7 @@ public class FoodCostService {
     // ============================================================
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public CostoComidaDiaria guardarCostoComidaDiaria(LocalDate fecha, Long empresaId) {
         FoodCostDiarioDTO diario = calcularDiario(fecha, empresaId);
         FoodCostResumenDTO r = diario.getResumen();
@@ -465,10 +471,12 @@ public class FoodCostService {
     // 3. MÉTODOS PÚBLICOS DE CONSULTA (read-only)
     // ============================================================
 
+    @PreAuthorize("hasRole('ADMIN')")
     public Optional<CostoComidaDiaria> obtenerCostoComidaDiaria(Long empresaId, LocalDate fecha) {
         return costoCDiariaRepository.findByEmpresaIdAndFechaAndActivoTrue(empresaId, fecha);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public List<FoodCostItemDTO> obtenerItemsGuardados(Long costoComidaDiariaId) {
         return costoCDiariaItemRepository.findByCostoComidaDiariaIdAndActivoTrue(costoComidaDiariaId)
                 .stream()
@@ -485,14 +493,17 @@ public class FoodCostService {
                 .collect(Collectors.toList());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public List<CostoComidaDiaria> obtenerCostoComidaPorRango(Long empresaId, LocalDate desde, LocalDate hasta) {
         return costoCDiariaRepository.findByEmpresaIdAndFechaBetweenAndActivoTrueOrderByFechaAsc(empresaId, desde, hasta);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public boolean existeCostoGuardado(Long empresaId, LocalDate fecha) {
         return costoCDiariaRepository.existsByEmpresaIdAndFechaAndActivoTrue(empresaId, fecha);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public boolean existeDiaSiguienteGuardado(Long empresaId, LocalDate fecha) {
         return costoCDiariaRepository.existsByEmpresaIdAndFechaAndActivoTrue(empresaId, fecha.plusDays(1));
     }

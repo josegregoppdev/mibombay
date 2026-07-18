@@ -11,6 +11,7 @@ import com.mibombay.sistemaresurante.repositories.InventarioFisicoDetalleReposit
 import com.mibombay.sistemaresurante.repositories.InventarioFisicoRepository;
 import com.mibombay.sistemaresurante.repositories.MovimientoInventarioRepository;
 import com.mibombay.sistemaresurante.repositories.ProductoRepository;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +44,7 @@ public class ReporteService {
         this.inventarioFisicoRepository = inventarioFisicoRepository;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public List<ConsumoReporteDTO> generarReporteConsumo(LocalDate desde, LocalDate hasta, Long empresaId) {
         List<ConsumoReporteDTO> reporte = new ArrayList<>();
 

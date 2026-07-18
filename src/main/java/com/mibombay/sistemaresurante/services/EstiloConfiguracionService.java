@@ -2,6 +2,7 @@ package com.mibombay.sistemaresurante.services;
 
 import com.mibombay.sistemaresurante.models.EstiloConfiguracion;
 import com.mibombay.sistemaresurante.repositories.EstiloConfiguracionRepository;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,16 +18,19 @@ public class EstiloConfiguracionService {
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public Optional<EstiloConfiguracion> obtenerPorEmpresaId(Long empresaId) {
         return repository.findByEmpresaId(empresaId);
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public EstiloConfiguracion guardar(EstiloConfiguracion config) {
         return repository.save(config);
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public EstiloConfiguracion restablecerValores(Long empresaId) {
         EstiloConfiguracion config = repository.findByEmpresaId(empresaId)
                 .orElseGet(() -> EstiloConfiguracion.builder().empresaId(empresaId).build());
@@ -37,6 +41,7 @@ public class EstiloConfiguracionService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public EstiloConfiguracion crearPorDefecto(Long empresaId) {
         EstiloConfiguracion config = EstiloConfiguracion.builder()
                 .empresaId(empresaId)

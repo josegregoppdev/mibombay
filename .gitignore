@@ -5,9 +5,8 @@ target/
 !**/src/test/**/target/
 
 # === Secrets / Config local ===
-application-dev.properties
-application-prod.properties
 application-local.properties
+application-prod-local.properties
 .env
 .env.*
 
@@ -42,8 +41,10 @@ dependency-reduced-pom.xml
 out/
 bin/
 
-# === Notas de trabajo personal ===
+# === Notas y planes de trabajo personal ===
 *.txt
+planDesarrollo
+docs/
 !AGENTS.md
 
 # === Skills locales (opencode) ===

@@ -202,12 +202,121 @@
 26. Consumo Indirecto (ingredientes consumibles con carga semanal/mensual + merma + desperdicio) ✅
 27. Dashboard con estadísticas + notificaciones WebSocket en tiempo real ✅
 28. Responsive design (sidebar mobile, POS drawer, filtros, tablas) ✅
-29. Testing
+29. 🆕 **Reorganización de `.properties` + Variables de entorno** (2026-07-17) ✅
+30. 🆕 **OWASP A01: Broken Access Control** (auditoría + `@PreAuthorize` en services) — en progreso
+
+## Configuración de Properties y Variables de Entorno (2026-07-17)
+
+### Estructura de archivos `.properties`
+```
+src/main/resources/
+├── application.properties                  (base/compartida, sin secretos)
+├── application-dev.properties              (dev, lee de env vars)
+├── application-prod.properties             (prod, sin defaults, todo via env vars)
+└── application-local.properties.example    (plantilla, gitignored)
+```
+
+### Nombres de env vars (alineados con el usuario)
+- `DB_URL` — JDBC connection string
+- `DB_USER` — usuario de MySQL
+- `DB_PASSWORD` — contraseña (NO subir al repo)
+- `SPRING_PROFILES_ACTIVE` — perfil activo (dev/prod)
+
+### Sintaxis de placeholders
+- `${DB_URL:jdbc:mysql://localhost:3306/mibombay}` — con default
+- `${DB_PASSWORD}` — sin default, falla si no existe (usar en prod)
+
+### Configurar env vars permanentes en Linux
+```bash
+echo 'export DB_URL="..."' >> ~/.bashrc
+echo 'export DB_USER=root' >> ~/.bashrc
+echo 'export DB_PASSWORD=tu_password' >> ~/.bashrc
+echo 'export SPRING_PROFILES_ACTIVE=dev' >> ~/.bashrc
+source ~/.bashrc
+```
+
+### Jerarquía de precedencia
+1. Argumentos CLI (`--DB_PASSWORD=xxx`)
+2. Variables de entorno (`export DB_PASSWORD=xxx`)
+3. `application-{profile}.properties`
+4. `application.properties` (base)
+
+### Archivos gitignored
+- `application-local.properties` (secretos personales)
+- `planDesarrollo` (notas de seguimiento)
+- `docs/` (auditorías internas)
+- `*.txt` (notas de trabajo, excepto `AGENTS.md`)
+
+## OWASP A01: Broken Access Control (En progreso)
+
+**Doble protección obligatoria**: `@PreAuthorize` en controller Y en service.
+
+### Servicios protegidos con `@PreAuthorize` (al 2026-07-17)
+| Servicio | Métodos | Rol |
+|----------|---------|-----|
+| ClienteService | 8 | ADMIN+CAJERO |
+| ProductoService | 5 | ADMIN |
+| VentaService | 4 | ADMIN+CAJERO |
+| ProveedorService | 6 | ADMIN |
+| IngredienteService | 6 | ADMIN |
+| InventarioFisicoService | 9 | ADMIN |
+| CompraService | 3 | ADMIN |
+| CierreZService | 4 | mixto |
+| RecetaService | 4 | ADMIN |
+| ConsumoPeriodoService | 3 | ADMIN |
+| CuadreCajaService | 3 | ADMIN |
+| VentaSuspendidaService | 3 | ADMIN+CAJERO |
+| DashboardService | 1 | ADMIN+CAJERO |
+| **UsuarioService** | 8 | ADMIN (agregado 2026-07-17) |
+| **MovimientoInventarioService** | 1 | ADMIN (agregado 2026-07-17) |
+| **EstiloConfiguracionService** | 4 | ADMIN (agregado 2026-07-17) |
+| **ReporteService** | 1 | ADMIN (agregado 2026-07-17) |
+| **FoodCostService** | 10 | ADMIN (agregado 2026-07-17) |
+
+### Tests de seguridad (22 tests)
+```
+src/test/java/com/mibombay/sistemaresurante/security/owasp/
+├── UsuarioServiceSecurityTest.java              (5 tests)
+├── MovimientoInventarioServiceSecurityTest.java (3 tests)
+├── EstiloConfiguracionServiceSecurityTest.java  (3 tests)
+├── ReporteServiceSecurityTest.java              (3 tests)
+└── FoodCostServiceSecurityTest.java             (8 tests)
+```
+
+### Patrón de test
+```java
+@SpringBootTest
+class UsuarioServiceSecurityTest {
+    @Autowired private UsuarioService service;
+
+    @Test @WithMockUser(roles = "ADMIN")
+    void adminPuedeListar() {
+        assertDoesNotThrow(() -> service.listarPorEmpresa(1L));
+    }
+
+    @Test @WithMockUser(roles = "CAJERO")
+    void cajeroNoPuedeListar() {
+        assertThrows(AccessDeniedException.class,
+            () -> service.listarPorEmpresa(1L));
+    }
+}
+```
+
+### Pendiente OWASP A01
+- [ ] Fase 2: Multi-tenant isolation (verificar `empresaId` en queries)
+- [ ] Fase 3: Method-level security (revisar services que faltan)
+- [ ] Fase 4: IDOR (tests cross-tenant)
+- [ ] Fase 5: Path traversal
+- [ ] Fase 6: CORS, CSRF, session
+- [ ] Fase 7: Logging de eventos sensibles
 
 ## Problemas conocidos
 
 ### Stock en 0 al editar ingredientes y productos sin receta
 Al abrir el formulario de edición (`/ingredientes/{id}/editar` o editar producto sin receta), el campo `stockActual` se muestra como 0 en lugar del valor real persistido en BD. No se ha determinado si es problema de binding del formulario o de persistencia.
+
+### Contraseña BD expuesta en primer commit (resuelto parcialmente)
+La contraseña `Kristoff_Mora26123009` quedó visible en el primer commit público de GitHub. Se limpió el historial local pero sigue en el commit remoto. **Recomendado**: rotar la contraseña en MySQL.
 
 ## Refactor pendiente — FoodCostService
 
@@ -228,7 +337,27 @@ Al abrir el formulario de edición (`/ingredientes/{id}/editar` o editar product
 5. Optimizar queries N+1 con queries agregadas en repositorios (cuando haya tiempo)
 
 ## Comandos
-- `./mvnw spring-boot:run` — iniciar app
-- `./mvnw clean compile` — compilar
-- `./mvnw test` — tests
-- `./mvnw clean install -DskipTests` — build sin tests
+
+```bash
+# Compilar
+./mvnw compile
+
+# Tests
+./mvnw test
+./mvnw test -Dtest="*ServiceSecurityTest"
+
+# Build sin tests
+./mvnw clean install -DskipTests
+
+# Ejecutar con perfil dev (lee env vars)
+SPRING_PROFILES_ACTIVE=dev ./mvnw spring-boot:run
+
+# O con argumento
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+
+# Git - trabajar en rama
+git checkout -b feature/nombre
+git add .
+git commit -m "descripcion"
+git push origin feature/nombre
+```

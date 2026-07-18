@@ -1,0 +1,16 @@
+# ============================================
+# application-local.properties
+# Secretos PERSONALES de tu máquina local
+# ============================================
+# Este archivo está en .gitignore y NO se sube al repo.
+# Cópialo desde application-local.properties.example y completa los valores.
+# ============================================
+
+# Tu password real de MySQL local (sobrescribe DB_PASSWORD_DEV)
+spring.datasource.password=TU_PASSWORD_REAL
+
+# Si usas un puerto distinto
+# server.port=8081
+
+# Si tu BD está en otro host
+# spring.datasource.url=jdbc:mysql://mi-host:3306/mibombay

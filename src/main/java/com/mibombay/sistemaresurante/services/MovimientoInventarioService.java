@@ -3,7 +3,6 @@ package com.mibombay.sistemaresurante.services;
 import com.mibombay.sistemaresurante.DTO.MovimientoInventarioDTO;
 import com.mibombay.sistemaresurante.mapper.MovimientoInventarioMapper;
 import com.mibombay.sistemaresurante.models.MovimientoInventario;
-import com.mibombay.sistemaresurante.models.Usuario;
 import com.mibombay.sistemaresurante.models.enums.MovimientoTipo;
 import com.mibombay.sistemaresurante.repositories.MovimientoInventarioRepository;
 import com.mibombay.sistemaresurante.repositories.UsuarioRepository;
@@ -12,6 +11,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +34,7 @@ public class MovimientoInventarioService {
         this.usuarioRepository = usuarioRepository;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public Page<MovimientoInventarioDTO> listar(String itemTipo, Long itemId,
                                                  MovimientoTipo movimientoTipo,
                                                  Pageable pageable) {

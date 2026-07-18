@@ -7,6 +7,7 @@ import com.mibombay.sistemaresurante.exceptions.ResourceNotFoundException;
 import com.mibombay.sistemaresurante.mapper.UsuarioMapper;
 import com.mibombay.sistemaresurante.models.Usuario;
 import com.mibombay.sistemaresurante.repositories.UsuarioRepository;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,7 @@ public class UsuarioService {
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UsuarioResponse> listarPorEmpresa(Long empresaId) {
         return usuarioRepository.findAllByEmpresaIdAndActivoTrue(empresaId).stream()
                 .map(usuarioMapper::toResponse)
@@ -35,6 +37,7 @@ public class UsuarioService {
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public UsuarioResponse obtenerPorId(Long id) {
         Usuario usuario = usuarioRepository.findByIdAndActivoTrue(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + id));
@@ -42,6 +45,7 @@ public class UsuarioService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public UsuarioResponse crear(UsuarioRequest request) {
         if (usuarioRepository.existsByUsernameAndEmpresaId(request.getUsername(), request.getEmpresaId())) {
             throw new BusinessException("El username ya existe en esta empresa: " + request.getUsername());
@@ -54,6 +58,7 @@ public class UsuarioService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public UsuarioResponse actualizar(Long id, UsuarioRequest request) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + id));
@@ -72,6 +77,7 @@ public class UsuarioService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public void eliminar(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + id));
@@ -80,16 +86,19 @@ public class UsuarioService {
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public long contarPorEmpresa(Long empresaId) {
         return usuarioRepository.countByEmpresaId(empresaId);
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public long contarTotal() {
         return usuarioRepository.count();
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public void activar(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + id));
