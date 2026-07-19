@@ -7,6 +7,7 @@ import com.mibombay.sistemaresurante.exceptions.ResourceNotFoundException;
 import com.mibombay.sistemaresurante.mapper.UsuarioMapper;
 import com.mibombay.sistemaresurante.models.Usuario;
 import com.mibombay.sistemaresurante.repositories.UsuarioRepository;
+import com.mibombay.sistemaresurante.tenant.TenantContext;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,25 +29,30 @@ public class UsuarioService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Transactional(readOnly = true)
     @PreAuthorize("hasRole('ADMIN')")
-    public List<UsuarioResponse> listarPorEmpresa(Long empresaId) {
+    public List<UsuarioResponse> listarUsuariosPorEmpresa(Long empresaId) {
         return usuarioRepository.findAllByEmpresaIdAndActivoTrue(empresaId).stream()
                 .map(usuarioMapper::toResponse)
                 .toList();
     }
 
-    @Transactional(readOnly = true)
     @PreAuthorize("hasRole('ADMIN')")
-    public UsuarioResponse obtenerPorId(Long id) {
-        Usuario usuario = usuarioRepository.findByIdAndActivoTrue(id)
+    public UsuarioResponse obtenerUsuarioPorId(Long id) {
+        Long empresaId = TenantContext.getEmpresaId();
+        Usuario usuario = usuarioRepository
+                .findByIdAndEmpresaIdAndActivoTrue(id, empresaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + id));
         return usuarioMapper.toResponse(usuario);
     }
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
-    public UsuarioResponse crear(UsuarioRequest request) {
+    public UsuarioResponse crearUsuario(UsuarioRequest request) {
+        Long empresaActual = TenantContext.getEmpresaId();
+        if (empresaActual != null && !empresaActual.equals(request.getEmpresaId())) {
+            throw new BusinessException("No puede crear usuarios en otra empresa");
+        }
+
         if (usuarioRepository.existsByUsernameAndEmpresaId(request.getUsername(), request.getEmpresaId())) {
             throw new BusinessException("El username ya existe en esta empresa: " + request.getUsername());
         }
@@ -59,9 +65,15 @@ public class UsuarioService {
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
-    public UsuarioResponse actualizar(Long id, UsuarioRequest request) {
-        Usuario usuario = usuarioRepository.findById(id)
+    public UsuarioResponse actualizarUsuario(Long id, UsuarioRequest request) {
+        Long empresaId = TenantContext.getEmpresaId();
+        Usuario usuario = usuarioRepository
+                .findByIdAndEmpresaIdAndActivoTrue(id, empresaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + id));
+
+        if (request.getEmpresaId() != null && !empresaId.equals(request.getEmpresaId())) {
+            throw new BusinessException("No puede mover usuarios a otra empresa");
+        }
 
         if (!usuario.getUsername().equals(request.getUsername())
                 && usuarioRepository.existsByUsernameAndEmpresaId(request.getUsername(), request.getEmpresaId())) {
@@ -78,29 +90,31 @@ public class UsuarioService {
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
-    public void eliminar(Long id) {
-        Usuario usuario = usuarioRepository.findById(id)
+    public void eliminarUsuario(Long id) {
+        Long empresaId = TenantContext.getEmpresaId();
+        Usuario usuario = usuarioRepository
+                .findByIdAndEmpresaIdAndActivoTrue(id, empresaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + id));
         usuario.setActivo(false);
         usuarioRepository.save(usuario);
     }
 
-    @Transactional(readOnly = true)
     @PreAuthorize("hasRole('ADMIN')")
-    public long contarPorEmpresa(Long empresaId) {
+    public long contarUsuariosPorEmpresa(Long empresaId) {
         return usuarioRepository.countByEmpresaId(empresaId);
     }
 
-    @Transactional(readOnly = true)
-    @PreAuthorize("hasRole('ADMIN')")
-    public long contarTotal() {
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    public long contarTodosGlobalUsuarios() {
         return usuarioRepository.count();
     }
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
-    public void activar(Long id) {
-        Usuario usuario = usuarioRepository.findById(id)
+    public void activarUsuario(Long id) {
+        Long empresaId = TenantContext.getEmpresaId();
+        Usuario usuario = usuarioRepository
+                .findByIdAndEmpresaIdAndActivoTrue(id, empresaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + id));
         usuario.setActivo(true);
         usuarioRepository.save(usuario);

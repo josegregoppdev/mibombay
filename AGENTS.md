@@ -125,9 +125,50 @@
 - Tenant isolation reforzada en service: método privado `verificarPerteneceAEmpresa(Ingrediente)` que compara `TenantContext.getEmpresaId()` con la entidad y lanza `ResourceNotFoundException` si no coincide
 
 ### Testing
-- JUnit 5 + Mockito
-- Tests de servicios y controladores
-- Nombre de test: `metodoEscenario_resultadoEsperado`
+- **Stack**: JUnit 5 + Mockito (`spring-boot-starter-test` lo incluye)
+- **Patrón preferido**: tests unitarios con Mockito puro (`@ExtendWith(MockitoExtension.class)`)
+  - Rápidos (~1s vs ~15s con `@SpringBootTest`)
+  - No conectan a BD, todo es mock
+  - No evalúan `@PreAuthorize` (eso lo cubre el filtro de URL en `SecurityConfig`)
+- **NO usar `@SpringBootTest`** salvo que se necesite contexto real (ej: tests de integración con BD)
+- **Estructura de archivos** (paquete `src/test/java/com/mibombay/sistemaresurante/`):
+  - `services/` → `XxxServiceTest.java` con los tests del service
+  - `testdata/` → `XxxTestData.java` con datos fake reusables (Object Mother pattern)
+- **Patrón de cada test** (3 pasos):
+  ```java
+  @Test
+  void metodoEscenario_resultadoEsperado() {
+      // 1) preparar: configurar mocks (when...)
+      when(repo.metodoX(args)).thenReturn(resultado);
+
+      // 2) ejecutar: llamar al metodo del service
+      T result = service.metodoX(args);
+
+      // 3) verificar: assertEquals / assertThrows / verify(mock)
+      assertEquals(esperado, result);
+  }
+  ```
+- **Mocks estándar** (en cada test class):
+  ```java
+  @Mock private XxxRepository repository;
+  @Mock private XxxMapper mapper;
+  @InjectMocks private XxxService service;
+  ```
+- **Multi-tenant en tests**: setear `TenantContext.setEmpresaId(1L)` en `@BeforeEach`, limpiar en `@AfterEach`
+- **Test data class** (Object Mother, todos métodos `static`):
+  ```java
+  public class XxxTestData {
+      public static Xxx crearXxx(Long id, ...) { return Xxx.builder()...build(); }
+      public static XxxRequest crearRequestValido() { ... }
+  }
+  ```
+- **Nombres**: `metodoEscenario_resultadoEsperado` (ej: `obtenerUsuarioPorId_otroTenant_lanza404`)
+- **Imports clave**:
+  - `org.junit.jupiter.api.{Test,BeforeEach,AfterEach,DisplayName}`
+  - `org.mockito.junit.jupiter.MockitoExtension`
+  - `org.mockito.{Mock,InjectMocks}`
+  - `static org.mockito.Mockito.{when,verify,never}`
+  - `static org.mockito.ArgumentMatchers.{any,anyLong,eq}`
 
 ## Reglas de negocio clave
 1. Producto con receta → stock = min(stock_ingrediente / cantidad); precioCompra = BigDecimal.ZERO (no null, para evitar null en BD, se ignora en cálculos)

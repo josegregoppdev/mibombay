@@ -21,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.Objects;
 
 @Controller
+@PreAuthorize("hasRole('ADMIN')")
 public class IngredienteController {
 
     private final IngredienteService ingredienteService;
@@ -37,7 +38,7 @@ public class IngredienteController {
                          Model model) {
         Long empresaId = TenantContext.getEmpresaId();
         if (empresaId != null) {
-            Page<IngredienteDTO> ingredientesPage = ingredienteService.buscarPaginado(empresaId, nombre, unidad, PageRequest.of(page, 15));
+            Page<IngredienteDTO> ingredientesPage = ingredienteService.listarIngredientesConFiltros(empresaId, nombre, unidad, PageRequest.of(page, 15));
             model.addAttribute("page", ingredientesPage);
         }
         model.addAttribute("unidades", UnidadMedida.values());
@@ -66,7 +67,7 @@ public class IngredienteController {
         try {
             dto.setEmpresaId(TenantContext.getEmpresaId());
             dto.setUsuarioId(user.getId());
-            ingredienteService.crear(dto);
+            ingredienteService.crearIngrediente(dto);
             redirect.addFlashAttribute("success", "Ingrediente creado correctamente");
             return "redirect:/ingredientes";
         } catch (BusinessException e) {
@@ -80,7 +81,7 @@ public class IngredienteController {
     @GetMapping("/ingredientes/{id}/editar")
     public String formularioEditar(@PathVariable Long id, Model model) {
         try {
-            IngredienteDTO dto = ingredienteService.obtenerPorId(id);
+            IngredienteDTO dto = ingredienteService.obtenerIngredientePorId(id);
             model.addAttribute("ingrediente", dto);
             model.addAttribute("unidades", UnidadMedida.values());
             return "ingredientes/form";
@@ -99,11 +100,11 @@ public class IngredienteController {
             return "ingredientes/form";
         }
         try {
-            IngredienteDTO actual = ingredienteService.obtenerPorId(id);
+            IngredienteDTO actual = ingredienteService.obtenerIngredientePorId(id);
             if (!Objects.equals(actual.getConsumible(), dto.getConsumible())) {
                 throw new BusinessException("El tipo de ingrediente (consumible/para receta) se define al crear y no se puede modificar posteriormente");
             }
-            ingredienteService.actualizar(id, dto);
+            ingredienteService.actualizarIngrediente(id, dto);
             redirect.addFlashAttribute("success", "Ingrediente actualizado correctamente");
             return "redirect:/ingredientes";
         } catch (ResourceNotFoundException e) {
@@ -120,7 +121,7 @@ public class IngredienteController {
     @PostMapping("/ingredientes/{id}/eliminar")
     public String eliminar(@PathVariable Long id, RedirectAttributes redirect) {
         try {
-            ingredienteService.eliminar(id);
+            ingredienteService.eliminarIngrediente(id);
             redirect.addFlashAttribute("success", "Ingrediente eliminado correctamente");
         } catch (ResourceNotFoundException e) {
             redirect.addFlashAttribute("error", "Ingrediente no encontrado");

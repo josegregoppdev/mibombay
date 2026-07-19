@@ -99,7 +99,7 @@ public class WebController {
 
         Map<Long, Long> usuariosPorEmpresa = new java.util.HashMap<>();
         for (EmpresaResponse emp : empresas) {
-            usuariosPorEmpresa.put(emp.getId(), usuarioService.contarPorEmpresa(emp.getId()));
+            usuariosPorEmpresa.put(emp.getId(), usuarioService.contarUsuariosPorEmpresa(emp.getId()));
         }
 
         model.addAttribute("user", user);
@@ -107,7 +107,7 @@ public class WebController {
         model.addAttribute("totalEmpresas", empresas.size());
         model.addAttribute("totalActivas", totalActivas);
         model.addAttribute("totalInactivas", totalInactivas);
-        model.addAttribute("totalUsuarios", usuarioService.contarTotal());
+        model.addAttribute("totalUsuarios", usuarioService.contarTodosGlobalUsuarios());
         model.addAttribute("usuariosPorEmpresa", usuariosPorEmpresa);
         return "superadmin-dashboard";
     }

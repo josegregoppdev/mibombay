@@ -67,7 +67,7 @@ public class RecetaController {
 
         Long empresaId = TenantContext.getEmpresaId();
         Page<com.mibombay.sistemaresurante.DTO.IngredienteDTO> ingredientes =
-                ingredienteService.buscarPaginado(empresaId, null, null, PageRequest.of(0, 500));
+                ingredienteService.listarIngredientesConFiltros(empresaId, null, null, PageRequest.of(0, 500));
         model.addAttribute("ingredientes", ingredientes.getContent());
         model.addAttribute("unidades", UnidadMedida.values());
 

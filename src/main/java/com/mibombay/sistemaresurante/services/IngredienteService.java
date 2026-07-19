@@ -16,11 +16,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+
 import java.util.Objects;
 
 @Service
-@Transactional(readOnly = true)
 public class IngredienteService {
 
     private final IngredienteRepository ingredienteRepository;
@@ -36,7 +35,7 @@ public class IngredienteService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    public Page<IngredienteDTO> buscarPaginado(Long empresaId, String nombre, UnidadMedida unidad, Pageable pageable) {
+    public Page<IngredienteDTO> listarIngredientesConFiltros(Long empresaId, String nombre, UnidadMedida unidad, Pageable pageable) {
         Specification<Ingrediente> spec = Specification.where(
                 (root, query, cb) -> cb.equal(root.get("empresaId"), empresaId));
         spec = spec.and((root, query, cb) -> cb.isTrue(root.get("activo")));
@@ -55,16 +54,17 @@ public class IngredienteService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    public IngredienteDTO obtenerPorId(Long id) {
-        Ingrediente ingrediente = ingredienteRepository.findByIdAndActivoTrue(id)
+    public IngredienteDTO obtenerIngredientePorId(Long id) {
+        Long empresaId = TenantContext.getEmpresaId();
+        Ingrediente ingrediente = ingredienteRepository
+                .findByIdAndEmpresaIdAndActivoTrue(id, empresaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ingrediente no encontrado: " + id));
-        verificarPerteneceAEmpresa(ingrediente);
         return ingredienteMapper.toDTO(ingrediente);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    public IngredienteDTO crear(IngredienteDTO dto) {
+    public IngredienteDTO crearIngrediente(IngredienteDTO dto) {
         Long empresaActual = TenantContext.getEmpresaId();
         if (empresaActual != null && !empresaActual.equals(dto.getEmpresaId())) {
             throw new BusinessException("No tienes permiso para crear ingredientes en esta empresa");
@@ -79,10 +79,11 @@ public class IngredienteService {
 
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    public IngredienteDTO actualizar(Long id, IngredienteDTO dto) {
-        Ingrediente ingrediente = ingredienteRepository.findByIdAndActivoTrue(id)
+    public IngredienteDTO actualizarIngrediente(Long id, IngredienteDTO dto) {
+        Long empresaId = TenantContext.getEmpresaId();
+        Ingrediente ingrediente = ingredienteRepository
+                .findByIdAndEmpresaIdAndActivoTrue(id, empresaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ingrediente no encontrado: " + id));
-        verificarPerteneceAEmpresa(ingrediente);
 
         if (!ingrediente.getNombre().equals(dto.getNombre())
                 && ingredienteRepository.existsByNombreAndEmpresaIdAndActivoTrue(dto.getNombre(), ingrediente.getEmpresaId())) {
@@ -100,10 +101,11 @@ public class IngredienteService {
 
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    public void eliminar(Long id) {
-        Ingrediente ingrediente = ingredienteRepository.findByIdAndActivoTrue(id)
+    public void eliminarIngrediente(Long id) {
+        Long empresaId = TenantContext.getEmpresaId();
+        Ingrediente ingrediente = ingredienteRepository
+                .findByIdAndEmpresaIdAndActivoTrue(id, empresaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ingrediente no encontrado: " + id));
-        verificarPerteneceAEmpresa(ingrediente);
 
         if (recetaDetalleRepository.existsByIngredienteId(id)) {
             throw new BusinessException("No se puede eliminar el ingrediente porque está siendo usado en una o más recetas");
@@ -114,14 +116,7 @@ public class IngredienteService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    public long contarPorEmpresa(Long empresaId) {
+    public long contarIngredientesPorEmpresa(Long empresaId) {
         return ingredienteRepository.findAllByEmpresaIdAndActivoTrueOrderByNombreAsc(empresaId).size();
-    }
-
-    private void verificarPerteneceAEmpresa(Ingrediente ingrediente) {
-        Long empresaId = TenantContext.getEmpresaId();
-        if (empresaId != null && !empresaId.equals(ingrediente.getEmpresaId())) {
-            throw new ResourceNotFoundException("Ingrediente no encontrado: " + ingrediente.getId());
-        }
     }
 }

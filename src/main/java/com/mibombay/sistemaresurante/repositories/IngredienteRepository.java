@@ -19,5 +19,7 @@ public interface IngredienteRepository extends JpaRepository<Ingrediente, Long>,
 
     Optional<Ingrediente> findByIdAndActivoTrue(Long id);
 
+    Optional<Ingrediente> findByIdAndEmpresaIdAndActivoTrue(Long id, Long empresaId);
+
     boolean existsByNombreAndEmpresaIdAndActivoTrue(String nombre, Long empresaId);
 }

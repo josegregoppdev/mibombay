@@ -7,6 +7,7 @@ import com.mibombay.sistemaresurante.security.CustomUserDetails;
 import com.mibombay.sistemaresurante.services.UsuarioService;
 import com.mibombay.sistemaresurante.tenant.TenantContext;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,6 +18,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 @Controller
+@PreAuthorize("hasRole('ADMIN')")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
@@ -36,7 +38,7 @@ public class UsuarioController {
     public String listarUsuarios(Model model, @AuthenticationPrincipal CustomUserDetails user) {
         Long empresaId = TenantContext.getEmpresaId();
         if (empresaId != null) {
-            List<UsuarioResponse> usuarios = usuarioService.listarPorEmpresa(empresaId);
+            List<UsuarioResponse> usuarios = usuarioService.listarUsuariosPorEmpresa(empresaId);
             model.addAttribute("usuarios", usuarios);
         }
         return "usuarios/list";
@@ -58,7 +60,7 @@ public class UsuarioController {
             return "usuarios/form";
         }
         request.setEmpresaId(TenantContext.getEmpresaId());
-        usuarioService.crear(request);
+        usuarioService.crearUsuario(request);
         redirect.addFlashAttribute("success", "Usuario creado correctamente");
         return "redirect:/usuarios";
     }
@@ -66,7 +68,7 @@ public class UsuarioController {
     @GetMapping("/usuarios/{id}/editar")
     public String formularioEditarUsuario(@PathVariable Long id, Model model,
                                           @AuthenticationPrincipal CustomUserDetails user) {
-        UsuarioResponse usuario = usuarioService.obtenerPorId(id);
+        UsuarioResponse usuario = usuarioService.obtenerUsuarioPorId(id);
         UsuarioRequest request = new UsuarioRequest();
         request.setNombre(usuario.getNombre());
         request.setApellido(usuario.getApellido());
@@ -90,21 +92,21 @@ public class UsuarioController {
             return "usuarios/form";
         }
         request.setEmpresaId(TenantContext.getEmpresaId());
-        usuarioService.actualizar(id, request);
+        usuarioService.actualizarUsuario(id, request);
         redirect.addFlashAttribute("success", "Usuario actualizado correctamente");
         return "redirect:/usuarios";
     }
 
     @PostMapping("/usuarios/{id}/eliminar")
     public String eliminarUsuario(@PathVariable Long id, RedirectAttributes redirect) {
-        usuarioService.eliminar(id);
+        usuarioService.eliminarUsuario(id);
         redirect.addFlashAttribute("success", "Usuario eliminado correctamente");
         return "redirect:/usuarios";
     }
 
     @PostMapping("/usuarios/{id}/activar")
     public String activarUsuario(@PathVariable Long id, RedirectAttributes redirect) {
-        usuarioService.activar(id);
+        usuarioService.activarUsuario(id);
         redirect.addFlashAttribute("success", "Usuario activado correctamente");
         return "redirect:/usuarios";
     }

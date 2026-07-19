@@ -223,7 +223,7 @@ public class VentaService {
     public void anular(Long id) {
         Venta venta = ventaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Venta no encontrada: " + id));
-        verificarPerteneceAEmpresa(venta);
+        verificarPerteneceAEmpresa(venta.getEmpresaId());
         if (!venta.getActivo()) {
             throw new BusinessException("La venta ya está anulada");
         }
